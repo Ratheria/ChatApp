@@ -11,45 +11,39 @@ import java.net.Socket;
 
 public class Connection implements Runnable
 {
+	public static final int BUFFER_SIZE = 1024;
+	private byte[] buffer = new byte[BUFFER_SIZE];
 	private Socket client;
-	public static final int BUFFER_SIZE = 256;
+	private InputStream fromClient = null;
+	private OutputStream toClient = null;
 
 	public Connection(Socket client)
 	{	this.client = client;	}
 
 	public void run()
 	{
+		//TODO actual connection and rejected connection
+	
 		try
 		{
-			byte[] buffer = new byte[BUFFER_SIZE];
-			InputStream fromClient = null;
-			OutputStream toClient = null;
-
-			try
+			fromClient = new BufferedInputStream(client.getInputStream());
+			toClient = new BufferedOutputStream(client.getOutputStream());
+			int numBytes;
+			System.out.println("connected");
+			while ((numBytes = fromClient.read(buffer)) != -1)
 			{
-				fromClient = new BufferedInputStream(client.getInputStream());
-				toClient = new BufferedOutputStream(client.getOutputStream());
-				int numBytes;
 				System.out.println("connected");
-				while ((numBytes = fromClient.read(buffer)) != -1)
-				{
-					System.out.println("connected");
-					toClient.write(buffer, 0, numBytes);
-					toClient.flush();
-				}
+				toClient.write(buffer, 0, numBytes);
+				toClient.flush();
 			}
-			catch (IOException ioe)
-			{
-				System.err.println(ioe);
-			}
-			finally
-			{
-				// close streams and socket
-				if (fromClient != null) fromClient.close();
-				if (toClient != null) toClient.close();
-			}
+			
+			
+			if (fromClient != null)
+			{	fromClient.close();	}
+			if (toClient != null) 
+			{	toClient.close();	}
 		}
-		catch (java.io.IOException ioe)
+		catch (IOException ioe)
 		{
 			System.err.println(ioe);
 		}

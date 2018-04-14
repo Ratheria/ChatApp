@@ -1,17 +1,20 @@
+/**
+ *	@author Ariana Fairbanks
+ */
 
-
-import java.net.*;
-import java.io.*;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.util.HashMap;
-import java.util.concurrent.*;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class ChatServer
 {
 	private static final int PORT = 8029;
 	private static final int MAX_CONNECTIONS = 2;
 	private static final Executor EXECUTOR = Executors.newCachedThreadPool();
-	private static HashMap<String, Connection> clientConnections;
-	//TODO keep array handy?
+	private static Connection[] clientConnections;
+	private static HashMap<Integer, String> userMap;
 	private static ServerSocket sock = null;
 	private static boolean serverRunning = true;
 	private static int connections = 0;
@@ -19,44 +22,29 @@ public class ChatServer
 	
 	public static void main(String[] args) throws IOException 
 	{
-		clientConnections = new HashMap<String, Connection>();
+		clientConnections = new Connection[MAX_CONNECTIONS];
+		userMap = new HashMap<Integer, String>();
 		try 
 		{
 			sock = new ServerSocket(PORT);
-			do
+			while(serverRunning)
 			{
-				for(String currentKey : clientConnections.keySet())
-				{
-					if(clientConnections.get(currentKey) == null)
-					{	clientConnections.remove(currentKey);	}
-				}
-				connections = clientConnections.size();
 				Connection latestConnection = new Connection(sock.accept());
-				//TODO parse dealio object for key
-				String key = " " + connections;
-				//System.out.print(connections + " ");
-				if(connections < MAX_CONNECTIONS)
-				{
-					//if(!clientConnections.containsKey(key))
-					//{
-						clientConnections.put(key, latestConnection);
-						EXECUTOR.execute(latestConnection);
-						//System.out.println("connected");
-					//}
-					//else
-					//{
-						//TODO username taken dealio
-					//}
-				}
-				else
-				{
-					//TODO server full dealio
-					//status is -1
-					//System.out.println("too many users");
-				}
-				//TODO remember to terminate client from client end
+				int firstNull = -1;
+		        for (int i = 0; i < MAX_CONNECTIONS; i++) 
+		        {
+		          if (clientConnections[i] == null) 
+		          {
+		            clientConnections[i] = latestConnection;
+					EXECUTOR.execute(latestConnection);
+		            break;
+		          }
+		        }
+		        if (firstNull == -1)
+		        {
+		        	//TODO server full
+		        }
 			}
-			while(serverRunning);
 		}
 		catch (IOException ioe) { }
 		finally 

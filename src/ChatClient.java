@@ -1,6 +1,12 @@
+/**
+ *	@author Ariana Fairbanks
+ */
 
-import java.net.*;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
 
 public class ChatClient
 {
@@ -56,10 +62,14 @@ public class ChatClient
 		}
 		finally
 		{
-			if (networkBin != null) networkBin.close();
-			if (localBin != null) localBin.close();
-			if (networkPout != null) networkPout.close();
-			if (sock != null) sock.close();
+			if (networkBin != null) 
+			{	networkBin.close();	}
+			if (localBin != null) 
+			{	localBin.close();	}
+			if (networkPout != null) 
+			{	networkPout.close();	}
+			if (sock != null) 
+			{	sock.close();	}
 		}
 	}
 }
