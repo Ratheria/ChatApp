@@ -12,6 +12,7 @@ import java.net.Socket;
 public class Connection implements Runnable
 {
 	public static final int BUFFER_SIZE = 1024;
+	public boolean closed = false;
 	private byte[] buffer = new byte[BUFFER_SIZE];
 	private Socket client;
 	private InputStream fromClient = null;
@@ -47,5 +48,13 @@ public class Connection implements Runnable
 		{
 			System.err.println(ioe);
 		}
+	}
+	
+	public void close()
+	{
+		try
+		{	client.close();	}
+		catch (IOException e)
+		{	e.printStackTrace();	}
 	}
 }

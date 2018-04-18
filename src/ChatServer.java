@@ -18,6 +18,7 @@ public class ChatServer
 	private static ServerSocket sock = null;
 	private static boolean serverRunning = true;
 	private static int connections = 0;
+	
 	//TODO server GUI?
 	
 	public static void main(String[] args) throws IOException 
@@ -31,18 +32,35 @@ public class ChatServer
 			{
 				Connection latestConnection = new Connection(sock.accept());
 				int firstNull = -1;
+				
+				for(Connection connection : clientConnections)
+				{
+					if(connection != null)
+					{
+			        	if(connection.closed)
+			        	{
+			        		connection.close();
+			        		connection = null;
+			        	}
+					}
+				}
+				
 		        for (int i = 0; i < MAX_CONNECTIONS; i++) 
 		        {
-		          if (clientConnections[i] == null) 
-		          {
-		            clientConnections[i] = latestConnection;
-					EXECUTOR.execute(latestConnection);
-		            break;
-		          }
+		        	if (clientConnections[i] == null) 
+		        	{
+		        		//System.out.println("Connected");
+		        		firstNull = i;
+		        		clientConnections[i] = latestConnection;
+		        		EXECUTOR.execute(latestConnection);
+		        		break;
+		        	}
 		        }
 		        if (firstNull == -1)
 		        {
+		        	System.out.println("Server Full");
 		        	//TODO server full
+		        	latestConnection.close();
 		        }
 			}
 		}

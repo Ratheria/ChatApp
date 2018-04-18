@@ -20,10 +20,10 @@ public class ChatClient
 			System.exit(0);
 		}
 
-		BufferedReader networkBin = null; // the reader from the network
-		PrintWriter networkPout = null; // the writer to the network
-		BufferedReader localBin = null; // the reader from the local keyboard
-		Socket sock = null; // the socket
+		BufferedReader networkBin = null; 
+		PrintWriter networkPout = null; 
+		BufferedReader localBin = null; 
+		Socket sock = null; 
 
 		try
 		{
