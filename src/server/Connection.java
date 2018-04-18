@@ -2,6 +2,8 @@
  *	@author Ariana Fairbanks
  */
 
+package server;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -12,14 +14,21 @@ import java.net.Socket;
 public class Connection implements Runnable
 {
 	public static final int BUFFER_SIZE = 1024;
-	public boolean closed = false;
-	private byte[] buffer = new byte[BUFFER_SIZE];
+	public boolean closed;
+	private byte[] buffer;
 	private Socket client;
-	private InputStream fromClient = null;
-	private OutputStream toClient = null;
+	private InputStream fromClient;
+	private OutputStream toClient;
+	private int id;
 
 	public Connection(Socket client)
-	{	this.client = client;	}
+	{	
+		this.client = client;
+		closed = false;
+		buffer = new byte[BUFFER_SIZE];
+		fromClient = null;
+		toClient = null;
+	}
 
 	public void run()
 	{
@@ -45,9 +54,7 @@ public class Connection implements Runnable
 			{	toClient.close();	}
 		}
 		catch (IOException ioe)
-		{
-			System.err.println(ioe);
-		}
+		{	System.err.println(ioe);	}
 	}
 	
 	public void close()
@@ -57,4 +64,7 @@ public class Connection implements Runnable
 		catch (IOException e)
 		{	e.printStackTrace();	}
 	}
+	
+	public void setID(int id)
+	{	this.id = id;	}
 }

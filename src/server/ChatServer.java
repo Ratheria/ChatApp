@@ -2,6 +2,8 @@
  *	@author Ariana Fairbanks
  */
 
+package server;
+
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.util.HashMap;
@@ -10,14 +12,13 @@ import java.util.concurrent.Executors;
 
 public class ChatServer
 {
-	private static final int PORT = 8029;
-	private static final int MAX_CONNECTIONS = 2;
-	private static final Executor EXECUTOR = Executors.newCachedThreadPool();
-	private static Connection[] clientConnections;
-	private static HashMap<Integer, String> userMap;
+	public static final int PORT = 8029;
+	public static final Executor EXECUTOR = Executors.newCachedThreadPool();
+	public static final int MAX_CONNECTIONS = 2;
+	public static boolean serverRunning = true;
+	public static Connection[] clientConnections;
+	public static HashMap<Integer, String> userMap;
 	private static ServerSocket sock = null;
-	private static boolean serverRunning = true;
-	private static int connections = 0;
 	
 	//TODO server GUI?
 	
@@ -28,23 +29,11 @@ public class ChatServer
 		try 
 		{
 			sock = new ServerSocket(PORT);
+			EXECUTOR.execute(new UpdateConnections());
 			while(serverRunning)
 			{
 				Connection latestConnection = new Connection(sock.accept());
 				int firstNull = -1;
-				
-				for(Connection connection : clientConnections)
-				{
-					if(connection != null)
-					{
-			        	if(connection.closed)
-			        	{
-			        		connection.close();
-			        		connection = null;
-			        	}
-					}
-				}
-				
 		        for (int i = 0; i < MAX_CONNECTIONS; i++) 
 		        {
 		        	if (clientConnections[i] == null) 
@@ -52,6 +41,8 @@ public class ChatServer
 		        		//System.out.println("Connected");
 		        		firstNull = i;
 		        		clientConnections[i] = latestConnection;
+		        		latestConnection.setID(i);
+		        		userMap.put(i, " ");
 		        		EXECUTOR.execute(latestConnection);
 		        		break;
 		        	}
