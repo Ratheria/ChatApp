@@ -10,17 +10,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonReader;
+import javax.json.JsonWriter;
 
-import shared.ChatroomBegin;
-import shared.Dealio;
+import dealio.Dealio;
 
 public class Connection implements Runnable
 {
-	public static final int BUFFER_SIZE = 2048;
-	public InputStream fromClient;
-	public OutputStream toClient;
 	public boolean closed;
-	private byte[] buffer;
+	public OutputStream toClient;
+	private InputStream fromClient;
+	private JsonReader parseDealio;
+	private JsonWriter writeDealio;
 	private Socket client;
 	private int id;
 
@@ -30,19 +33,21 @@ public class Connection implements Runnable
 	{
 		this.client = client;
 		closed = false;
-		buffer = new byte[BUFFER_SIZE];
 		fromClient = null;
 		toClient = null;
 		try
 		{
-			fromClient = new DataInputStream(client.getInputStream());
-			toClient = new DataOutputStream(client.getOutputStream());
+			//fromClient = new DataInputStream(client.getInputStream());
+			//toClient = new DataOutputStream(client.getOutputStream());
+			parseDealio = Json.createReader(client.getInputStream());
+			writeDealio = Json.createWriter(client.getOutputStream());
 			client.setKeepAlive(true);
 		}
 		catch (IOException e)
 		{}
 	}
 
+	@Override
 	public void run()
 	{
 		try
@@ -53,50 +58,60 @@ public class Connection implements Runnable
 	
 	private void startConnection() throws IOException
 	{
-		Dealio currentDealio;
+		JsonObject chatroomBeginDealio;
+		JsonObject chatroomResponseDealio;
 		if (id == -1)
 		{
 			System.out.println("Server Full");
-			// TODO server full
+			chatroomResponseDealio = createChatroomResponse();
+			System.out.print(chatroomResponseDealio.toString());
+			writeDealio.writeObject(chatroomResponseDealio);
 			closed = true;
 			// TODO different closed handling?
 		}
 		else
 		{
-			int numBytes;
 			System.out.println("connected");
-			String dealioContent = "";
-			boolean fullResponse = false;
-			while (!fullResponse) 
+			chatroomBeginDealio = parseDealio.readObject();
+			System.out.println(chatroomBeginDealio.toString());
+			String type = chatroomBeginDealio.getString("type");
+			Dealio dealio = Dealio.getType(type);
+			if(dealio != null)
 			{
-				numBytes = fromClient.read(buffer);
-				String newContent = new String(buffer).trim();
-				dealioContent += newContent;
-				System.out.println(newContent);
-				System.out.println(numBytes); 
-				if(dealioContent.endsWith("}"))
-				{	fullResponse = true;	}
-				//toClient.write(buffer, 0, numBytes); 
-				//toClient.flush(); 
-				buffer = new byte[BUFFER_SIZE]; 
-			}
-			currentDealio = Dealio.determineDealioFromClient(dealioContent);
-			if((currentDealio instanceof ChatroomBegin))
-			{
-				String username = ((ChatroomBegin) currentDealio).getUsername();
-				//TODO too long
-				username += ":" + id;
-				ChatServer.userMap.put(id, username);
-				System.out.println(username);
+				if((dealio == Dealio.chatroom_begin))
+				{
+					String username = chatroomBeginDealio.getString("username").toLowerCase();
+					if(username.length() > 20)
+					{
+						System.out.println("username too long");
+					}
+					username += ":" + id;
+					ChatServer.userMap.put(id, username);
+					System.out.println(username);
+					chatroomResponseDealio = createChatroomResponse();
+					writeDealio.writeObject(chatroomResponseDealio);
+				}
+				else
+				{
+					System.out.println("unexpected dealio type");
+				}
 			}
 			else
 			{
-				System.out.println("error");
+				System.out.println("malformed dealio");
 			}
 		}
 		System.out.println("finished");
 	}
 
+	private JsonObject createChatroomResponse()
+	{
+		 return Json.createObjectBuilder().add("id", id)
+		.add("clientNo", ChatServer.userMap.size())
+		.add("users", ChatServer.userMap.values().toArray().toString())
+		.build();
+	}
+	
 	public void close()
 	{
 		try
@@ -105,6 +120,8 @@ public class Connection implements Runnable
 			{	fromClient.close();	}
 			if (toClient != null)
 			{	toClient.close();	}
+			parseDealio.close();
+			writeDealio.close();
 			client.close();
 		}
 		catch (IOException e)

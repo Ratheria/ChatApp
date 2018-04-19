@@ -2,7 +2,7 @@
  *	@author Ariana Fairbanks
  */
 
-package shared;
+package dealio;
 
 public enum DealioError
 {
