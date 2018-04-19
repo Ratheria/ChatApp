@@ -13,7 +13,7 @@ import java.net.Socket;
 
 public class Connection implements Runnable
 {
-	public static final int BUFFER_SIZE = 1024;
+	public static final int BUFFER_SIZE = 2048;
 	public boolean closed;
 	private byte[] buffer;
 	private Socket client;
@@ -22,49 +22,82 @@ public class Connection implements Runnable
 	private int id;
 
 	public Connection(Socket client)
-	{	
+	{
 		this.client = client;
 		closed = false;
 		buffer = new byte[BUFFER_SIZE];
 		fromClient = null;
 		toClient = null;
-	}
-
-	public void run()
-	{
-		//TODO actual connection and rejected connection
-	
 		try
 		{
 			fromClient = new BufferedInputStream(client.getInputStream());
 			toClient = new BufferedOutputStream(client.getOutputStream());
-			int numBytes;
-			System.out.println("connected");
-			while ((numBytes = fromClient.read(buffer)) != -1)
-			{
-				System.out.println("connected");
-				toClient.write(buffer, 0, numBytes);
-				toClient.flush();
-			}
-			
-			
-			if (fromClient != null)
-			{	fromClient.close();	}
-			if (toClient != null) 
-			{	toClient.close();	}
+			client.setKeepAlive(true);
 		}
-		catch (IOException ioe)
-		{	System.err.println(ioe);	}
+		catch (IOException e)
+		{}
 	}
-	
-	public void close()
+
+	public void run()
 	{
 		try
-		{	client.close();	}
+		{	startConnection();	}
 		catch (IOException e)
 		{	e.printStackTrace();	}
 	}
 	
+	private void startConnection() throws IOException
+	{
+		if (id == -1)
+		{
+			System.out.println("Server Full");
+			closed = true;
+			// TODO different closed handling?
+			// TODO server full
+		}
+		else
+		{
+			int numBytes;
+			System.out.println("connected");
+			String dealioContent = "";
+			boolean fullResponse = false;
+			while (!fullResponse) 
+			{
+				numBytes = fromClient.read(buffer);
+				String newContent = new String(buffer).trim();
+				dealioContent += newContent;
+				System.out.println(newContent);
+				System.out.println(numBytes); 
+				if(dealioContent.endsWith("}"))
+				{	fullResponse = true;	}
+				//toClient.write(buffer, 0, numBytes); 
+				//toClient.flush(); 
+				buffer = new byte[BUFFER_SIZE]; 
+			}
+			handleDealio(dealioContent);
+		}
+		System.out.println("finished");
+	}
+
+	private void handleDealio(String dealioContent)
+	{
+
+	}
+
+	public void close()
+	{
+		try
+		{
+			if (fromClient != null)
+			{	fromClient.close();	}
+			if (toClient != null)
+			{	toClient.close();	}
+			client.close();
+		}
+		catch (IOException e)
+		{	e.printStackTrace();	}
+	}
+
 	public void setID(int id)
 	{	this.id = id;	}
 }

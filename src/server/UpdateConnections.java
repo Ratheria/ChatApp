@@ -30,7 +30,7 @@ public class UpdateConnections implements Runnable
 			{	Thread.sleep(5000);	}
 			catch (InterruptedException e)
 			{	e.printStackTrace();	}
-			System.out.println("ran");
+			//System.out.println("ran");
 		}
 	}
 	

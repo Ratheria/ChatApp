@@ -54,7 +54,7 @@ public class ChatClient
 				else
 				{
 					networkPout.println(line);
-					System.out.println("Server: " + networkBin.readLine());
+					//System.out.println("Server: " + networkBin.readLine());
 				}
 			}
 		}

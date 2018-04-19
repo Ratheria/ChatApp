@@ -41,18 +41,12 @@ public class ChatServer
 		        		//System.out.println("Connected");
 		        		firstNull = i;
 		        		clientConnections[i] = latestConnection;
-		        		latestConnection.setID(i);
 		        		userMap.put(i, " ");
-		        		EXECUTOR.execute(latestConnection);
 		        		break;
 		        	}
 		        }
-		        if (firstNull == -1)
-		        {
-		        	System.out.println("Server Full");
-		        	//TODO server full
-		        	latestConnection.close();
-		        }
+	        	latestConnection.setID(firstNull);
+	        	EXECUTOR.execute(latestConnection);
 			}
 		}
 		catch (IOException ioe) { }
