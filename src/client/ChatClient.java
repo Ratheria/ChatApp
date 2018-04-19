@@ -20,6 +20,7 @@ public class ChatClient
 		{
 			System.err.println("Usage: java ChatClient <server>");
 			System.exit(0);
+			//TODO allow user to change?
 		}
 
 		BufferedReader networkBin = null; 
@@ -31,6 +32,9 @@ public class ChatClient
 		{
 			sock = new Socket(args[0], PORT);
 
+			//{ type: “chatroom-begin”, username: “(Username selected by the user)”, len: (length of username) }
+			//{\"type\":\"chatroom-begin\", \"username\":\"temp\",\"len\":4}
+			//{"type":"chatroom-begin","username":"temp","len":4}
 			// set up the necessary communication channels
 			networkBin = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			localBin = new BufferedReader(new InputStreamReader(System.in));
