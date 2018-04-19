@@ -11,7 +11,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Program Files/Java/javax.json-api-1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/javax.json-1.1.jar"/>
+	<classpathentry kind="lib" path="javax.json-1.1.jar"/>
+	<classpathentry kind="lib" path="javax.json-api-1.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
