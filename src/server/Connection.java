@@ -37,8 +37,6 @@ public class Connection implements Runnable
 		toClient = null;
 		try
 		{
-			//fromClient = new DataInputStream(client.getInputStream());
-			//toClient = new DataOutputStream(client.getOutputStream());
 			parseDealio = Json.createReader(client.getInputStream());
 			writeDealio = Json.createWriter(client.getOutputStream());
 			client.setKeepAlive(true);
@@ -74,6 +72,7 @@ public class Connection implements Runnable
 			System.out.println("connected");
 			chatroomBeginDealio = parseDealio.readObject();
 			System.out.println(chatroomBeginDealio.toString());
+			System.out.println(chatroomBeginDealio.toString().equals("{\"type\":\"chatroom-begin\",\"username\":\"temp\",\"len\":4}"));
 			String type = chatroomBeginDealio.getString("type");
 			Dealio dealio = Dealio.getType(type);
 			if(dealio != null)
@@ -85,10 +84,11 @@ public class Connection implements Runnable
 					{
 						System.out.println("username too long");
 					}
-					username += ":" + id;
-					ChatServer.userMap.put(id, username);
+					username = username + ":" + id;
 					System.out.println(username);
+					ChatServer.userMap.put(id, username);
 					chatroomResponseDealio = createChatroomResponse();
+					System.out.println(chatroomResponseDealio.toString());
 					writeDealio.writeObject(chatroomResponseDealio);
 				}
 				else
@@ -106,9 +106,18 @@ public class Connection implements Runnable
 
 	private JsonObject createChatroomResponse()
 	{
-		 return Json.createObjectBuilder().add("id", id)
+		String userArrayString = "[";
+		Object[] currentUserArray = ChatServer.userMap.values().toArray();
+		for(Object usernameValue : currentUserArray)
+		{
+			userArrayString = userArrayString + "\"" + (String) usernameValue + "\",";
+		}
+		userArrayString = userArrayString.substring(0, userArrayString.length() - 1) + "]";
+		System.out.println(userArrayString);
+		
+		return Json.createObjectBuilder().add("id", id)
 		.add("clientNo", ChatServer.userMap.size())
-		.add("users", ChatServer.userMap.values().toArray().toString())
+		.add("users", userArrayString)
 		.build();
 	}
 	

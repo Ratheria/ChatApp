@@ -6,7 +6,9 @@ package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -21,6 +23,7 @@ public class ChatServer
 	private static ServerSocket sock = null;
 	
 	//TODO server GUI?
+	//TODO synchronized
 	
 	public static void main(String[] args) throws IOException 
 	{

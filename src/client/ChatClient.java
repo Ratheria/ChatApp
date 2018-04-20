@@ -35,6 +35,7 @@ public class ChatClient
 			//{ type: “chatroom-begin”, username: “(Username selected by the user)”, len: (length of username) }
 			//{\"type\":\"chatroom-begin\", \"username\":\"temp\",\"len\":4}
 			//{"type":"chatroom-begin","username":"temp","len":4}
+			
 			// set up the necessary communication channels
 			networkBin = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 			localBin = new BufferedReader(new InputStreamReader(System.in));
@@ -54,6 +55,7 @@ public class ChatClient
 			while (!done)
 			{
 				String line = localBin.readLine();
+				System.out.println(line.equals("{\"type\":\"chatroom-begin\",\"username\":\"temp\",\"len\":4}"));
 				if (line.equals(".")) done = true;
 				else
 				{
