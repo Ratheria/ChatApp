@@ -10,18 +10,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
-
 import dealio.Dealio;
 
 public class Connection implements Runnable
 {
 	public boolean closed;
-	public OutputStream toClient;
-	private InputStream fromClient;
 	private JsonReader parseDealio;
 	private JsonWriter writeDealio;
 	private Socket client;
@@ -33,8 +36,6 @@ public class Connection implements Runnable
 	{
 		this.client = client;
 		closed = false;
-		fromClient = null;
-		toClient = null;
 		try
 		{
 			parseDealio = Json.createReader(client.getInputStream());
@@ -61,7 +62,7 @@ public class Connection implements Runnable
 		if (id == -1)
 		{
 			System.out.println("Server Full");
-			chatroomResponseDealio = createChatroomResponse();
+			chatroomResponseDealio = createDealio(Dealio.chatroom_response);
 			System.out.print(chatroomResponseDealio.toString());
 			writeDealio.writeObject(chatroomResponseDealio);
 			closed = true;
@@ -87,7 +88,7 @@ public class Connection implements Runnable
 					username = username + ":" + id;
 					System.out.println(username);
 					ChatServer.userMap.put(id, username);
-					chatroomResponseDealio = createChatroomResponse();
+					chatroomResponseDealio = createDealio(Dealio.chatroom_response);
 					System.out.println(chatroomResponseDealio.toString());
 					writeDealio.writeObject(chatroomResponseDealio);
 				}
@@ -104,31 +105,45 @@ public class Connection implements Runnable
 		System.out.println("finished");
 	}
 
-	private JsonObject createChatroomResponse()
+	private JsonObject createDealio(Dealio dealioType)
 	{
-		String userArrayString = "[";
-		Object[] currentUserArray = ChatServer.userMap.values().toArray();
-		for(Object usernameValue : currentUserArray)
+		JsonObjectBuilder currentBuild = Json.createObjectBuilder();
+		switch(dealioType)
 		{
-			userArrayString = userArrayString + "\"" + (String) usernameValue + "\",";
+			case chatroom_response:
+				Object[] currentUserArray = ChatServer.userMap.values().toArray();
+				JsonArray userList = Json.createArrayBuilder(Arrays.asList(currentUserArray)).build();
+				currentBuild.add("type", "chatroom-response")
+							.add("id", id)
+							.add("clientNo", ChatServer.userMap.size())
+							.add("users", userList);
+				break;
+			case chatroom_begin:
+				break;
+			case chatroom_broadcast:
+				break;
+			case chatroom_end:
+				break;
+			case chatroom_error:
+				break;
+			case chatroom_send:
+				break;
+			case chatroom_special:
+				break;
+			case chatroom_update:
+				break;
+			default:
+				break;
 		}
-		userArrayString = userArrayString.substring(0, userArrayString.length() - 1) + "]";
-		System.out.println(userArrayString);
+
 		
-		return Json.createObjectBuilder().add("id", id)
-		.add("clientNo", ChatServer.userMap.size())
-		.add("users", userArrayString)
-		.build();
+		return currentBuild.build();
 	}
 	
 	public void close()
 	{
 		try
 		{
-			if (fromClient != null)
-			{	fromClient.close();	}
-			if (toClient != null)
-			{	toClient.close();	}
 			parseDealio.close();
 			writeDealio.close();
 			client.close();

@@ -23,7 +23,7 @@ public class ChatServer
 	private static ServerSocket sock = null;
 	
 	//TODO server GUI?
-	//TODO synchronized
+	//TODO synchronized client write
 	
 	public static void main(String[] args) throws IOException 
 	{
