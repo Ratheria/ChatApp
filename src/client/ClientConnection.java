@@ -4,42 +4,36 @@
 
 package client;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 import dealio.Dealio;
-import server.ChatServer;
 
-public class ClientConnection implements Runnable
+public class ClientConnection
 {
 	private Socket server;
 	private int id;
 	private String username;
 	private ArrayList<String> userList;
-	private ChatClientFrame frame;
-
-	public boolean connected = false;
-	public JsonReader parseDealio;
-	public JsonWriter writeDealio;
+	private ChatClient gui;
+	private JsonReader parseDealio;
+	private JsonWriter writeDealio;
+	private boolean connected = false;
 
 	//{\"type\":\"chatroom-begin\",\"username\":\"temp\",\"len\":4}
 	//{"type":"chatroom-begin","username":"temp","len":4}
 	
 	//TODO notABigDealio dealioOrNoDealio
 	
-	public ClientConnection(Socket server)
+	public ClientConnection(Socket server, ChatClient gui)
 	{
 		this.server = server;
+		this.gui = gui;
 		try
 		{
 			writeDealio = Json.createWriter(server.getOutputStream());
@@ -47,13 +41,6 @@ public class ClientConnection implements Runnable
 		}
 		catch (IOException e)
 		{	System.err.println(e);	}
-	}
-	
-	@Override
-	public void run()
-	{
-		frame = new ChatClientFrame(this);
-		
 	}
 	
 	public void sendMessage(String content)
@@ -69,6 +56,12 @@ public class ClientConnection implements Runnable
 			beginDealio = createDealio(Dealio.chatroom_begin, content);
 			System.out.println(beginDealio);
 			writeDealio.writeObject(beginDealio);
+			
+			connected = true;
+			
+			new ServerUpdate();
+			//TODO
+			
 			currentDealio = parseDealio.readObject();
 			System.out.println(currentDealio.toString());
 			String type = currentDealio.getString("type");
@@ -115,11 +108,7 @@ public class ClientConnection implements Runnable
 		return currentBuild.build();
 	}
 	
-	public void exit()
-	{
-		//TODO
-	}
-	
+	//TODO ???
 	public synchronized void handleDealio(JsonObject currentDealio)
 	{
 		System.out.println(currentDealio.toString());
@@ -141,16 +130,16 @@ public class ClientConnection implements Runnable
 			}
 		}
 	}
-	
-	private void windowCloseListener()
+
+	class ServerUpdate extends Thread
 	{
-		frame.addWindowListener(new WindowAdapter()
+		public void run()
 		{
-		    public void windowClosing(WindowEvent e)
-		    {
-		        //TODO
-		    }
-		});
+			while(connected)
+			{
+				
+			}
+		}
 	}
 	
 }
