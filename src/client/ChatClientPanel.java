@@ -47,7 +47,6 @@ public class ChatClientPanel extends JPanel
 		displayCaret = (DefaultCaret)displayLog.getCaret();
 		inputField = new JTextField();
 		scroll = new JScrollPane(displayLog);
-		springLayout.putConstraint(SpringLayout.EAST, scroll, -120, SpringLayout.EAST, this);
 		outline = new Color(0, 255, 0);
 		scrollBar = scroll.getVerticalScrollBar();
 		usersLabel = new JLabel("");
@@ -89,6 +88,8 @@ public class ChatClientPanel extends JPanel
 		inputField.setText("");
 		sendButton.setFocusPainted(false);
 		sendButton.setContentAreaFilled(false);
+		userPanel.setOpaque(false);
+		userPanel.setForeground(Color.GREEN);
 		topLabel.setForeground(Color.GREEN);
 		usersLabel.setForeground(Color.GREEN);
 		displayLog.setForeground(Color.GREEN);
@@ -107,6 +108,7 @@ public class ChatClientPanel extends JPanel
 		springLayout.putConstraint(SpringLayout.SOUTH, userPanel, 195, SpringLayout.NORTH, scroll);
 		springLayout.putConstraint(SpringLayout.EAST, userPanel, -25, SpringLayout.EAST, this);
 		springLayout.putConstraint(SpringLayout.WEST, scroll, 25, SpringLayout.WEST, this);
+		springLayout.putConstraint(SpringLayout.EAST, scroll, -120, SpringLayout.EAST, this);
 		springLayout.putConstraint(SpringLayout.NORTH, topLabel, 15, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.SOUTH, topLabel, -10, SpringLayout.NORTH, scroll);
 		springLayout.putConstraint(SpringLayout.WEST, topLabel, 25, SpringLayout.WEST, this);
@@ -140,10 +142,7 @@ public class ChatClientPanel extends JPanel
 			{
 				//TODO send
 				//TODO character limits
-				if(!base.sendMessage(inputField.getText()))
-				{
-					//TODO connection failed
-				}
+				base.sendMessage(inputField.getText());
 				displayLog.setText("");
 				inputField.setText("");
 				inputField.requestFocusInWindow();

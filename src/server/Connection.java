@@ -38,8 +38,7 @@ public class Connection implements Runnable
 			writeDealio = Json.createWriter(client.getOutputStream());
 			client.setKeepAlive(true);
 		}
-		catch (IOException e)
-		{}
+		catch (IOException e){}
 	}
 
 	@Override
@@ -81,8 +80,8 @@ public class Connection implements Runnable
 						System.out.println("username too long");
 					}
 					userName = username + ":" + id;
-					System.out.println(username);
-					ChatServer.userMap.put(id, username);
+					System.out.println(userName);
+					ChatServer.userMap.put(id, userName);
 					chatroomResponseDealio = createDealio(Dealio.chatroom_response, "", null, null, null);
 					writeDealio.writeObject(chatroomResponseDealio);
 					//TODO send dealio to acknowledge new user

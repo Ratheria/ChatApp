@@ -4,8 +4,17 @@
 
 package client;
 
+import java.io.IOException;
+import java.net.Socket;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 public class ChatClient
 {
+	private static final int PORT = 8029;
+	public static final Executor EXECUTOR = Executors.newCachedThreadPool();
+	private static Socket sock = null;
+	
 	public static void main(String[] args)
 	{
 		if (args.length != 1)
@@ -16,7 +25,17 @@ public class ChatClient
 		}
 		else
 		{
-			ClientConnection chatClient = new ClientConnection(args[0]);
+			try
+			{
+				sock = new Socket(args[0], PORT);
+				ClientConnection chatClient = new ClientConnection(sock);
+				EXECUTOR.execute(chatClient);
+			}
+			catch (IOException e)
+			{
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 }

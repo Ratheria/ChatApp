@@ -9,6 +9,9 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -17,18 +20,15 @@ import javax.json.JsonWriter;
 import dealio.Dealio;
 import server.ChatServer;
 
-public class ClientConnection
+public class ClientConnection implements Runnable
 {
-	private static final int PORT = 8029;
-	
-	private String server;
+	private Socket server;
 	private int id;
 	private String username;
 	private ArrayList<String> userList;
 	private ChatClientFrame frame;
 
 	public boolean connected = false;
-	public Socket sock;
 	public JsonReader parseDealio;
 	public JsonWriter writeDealio;
 
@@ -37,56 +37,60 @@ public class ClientConnection
 	
 	//TODO notABigDealio dealioOrNoDealio
 	
-	public ClientConnection(String server)
+	public ClientConnection(Socket server)
 	{
 		this.server = server;
-		frame = new ChatClientFrame(this);
+		try
+		{
+			writeDealio = Json.createWriter(server.getOutputStream());
+			parseDealio = Json.createReader(server.getInputStream());
+		}
+		catch (IOException e)
+		{	System.err.println(e);	}
 	}
 	
-	public boolean sendMessage(String content)
+	@Override
+	public void run()
 	{
-		boolean result = true;
+		frame = new ChatClientFrame(this);
+		
+	}
+	
+	public void sendMessage(String content)
+	{
+		JsonObject beginDealio;
+		JsonObject currentDealio;
 		if(connected)
 		{
 			//TODO
 		}
 		else
 		{
-			connected = connect();
-			if(connected)
+			beginDealio = createDealio(Dealio.chatroom_begin, content);
+			System.out.println(beginDealio);
+			writeDealio.writeObject(beginDealio);
+			currentDealio = parseDealio.readObject();
+			System.out.println(currentDealio.toString());
+			String type = currentDealio.getString("type");
+			Dealio dealio = Dealio.getType(type);
+			if(dealio != null)
 			{
-				JsonObject beginDealio = createDealio(Dealio.chatroom_begin, content);
-				System.out.println(beginDealio);
-				writeDealio.writeObject(beginDealio);
-				try
-				{	parseDealio = Json.createReader(sock.getInputStream());	}
-				catch (IOException e){}
-				JsonObject currentDealio = parseDealio.readObject();
-				System.out.println(currentDealio.toString());
-				String type = currentDealio.getString("type");
-				Dealio dealio = Dealio.getType(type);
-				if(dealio != null)
+				if((dealio == Dealio.chatroom_response))
 				{
-					if((dealio == Dealio.chatroom_response))
-					{
-						
-					}
-					else
-					{
-						System.out.println("unexpected dealio type");
-					}
+					//TODO
+					id = currentDealio.getInt("id");
+					System.out.println(currentDealio.getJsonArray("users").toString());
 				}
 				else
 				{
-					System.out.println("malformed dealio");
+					System.out.println("unexpected dealio type");
 				}
 			}
 			else
 			{
-				result = false;
+				System.out.println("malformed dealio");
 			}
 		}
-		return result;
 	}
 	
 	private JsonObject createDealio(Dealio dealioType, String content)
@@ -116,22 +120,26 @@ public class ClientConnection
 		//TODO
 	}
 	
-	public boolean connect()
+	public synchronized void handleDealio(JsonObject currentDealio)
 	{
-		try
+		System.out.println(currentDealio.toString());
+		String type = currentDealio.getString("type");
+		Dealio dealio = Dealio.getType(type);
+		if(dealio != null)
 		{
-			sock = new Socket(server, PORT);
-			connected = true;
-			writeDealio = Json.createWriter(sock.getOutputStream());
+			switch(dealio)
+			{
+				case chatroom_update:
+					break;
+				case chatroom_broadcast:
+					break;
+				case chatroom_error:
+					break;
+				default:
+					System.out.println("Unexpected dealio type.");
+					break;
+			}
 		}
-		catch (IOException ioe)
-		{	System.err.println(ioe);	}
-		return connected;
-	}
-	
-	public synchronized void handleDealio(Dealio dealio)
-	{
-		
 	}
 	
 	private void windowCloseListener()
