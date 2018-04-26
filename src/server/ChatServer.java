@@ -6,11 +6,15 @@ package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import javax.json.JsonObject;
 
 public class ChatServer
 {
@@ -19,7 +23,7 @@ public class ChatServer
 	public static final int MAX_CONNECTIONS = 2;
 	public static boolean serverRunning = true;
 	public static Connection[] clientConnections;
-	public static HashMap<Integer, String> userMap;
+	public static Map<Integer, String> userMap = Collections.synchronizedMap(new HashMap<Integer, String>());
 	private static ServerSocket sock = null;
 	
 	//TODO server GUI?
@@ -60,5 +64,26 @@ public class ChatServer
 		}
 	}
 	
+	public synchronized void sendDealio(JsonObject dealio, String[] receiving)
+	{
+		ArrayList<String> receivingList = new ArrayList<String>(Arrays.asList(receiving));
+		if(receiving == null)
+		{
+			for(Connection currentConnection : clientConnections)
+			{
+				currentConnection.writeDealio.writeObject(dealio);
+			}
+		}
+		else
+		{
+			for(Map.Entry<Integer, String> entry : userMap.entrySet())
+			{
+				if(receivingList.contains(entry.getValue()))
+				{
+					clientConnections[entry.getKey().intValue()].writeDealio.writeObject(dealio);
+				}
+			}
+		}
+	}
 	
 }

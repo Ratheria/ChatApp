@@ -4,16 +4,9 @@
 
 package server;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
@@ -21,13 +14,16 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 import dealio.Dealio;
+import dealio.DealioError;
+import dealio.DealioUpdate;
 
 public class Connection implements Runnable
 {
 	public boolean closed;
-	private JsonReader parseDealio;
-	private JsonWriter writeDealio;
+	public JsonReader parseDealio;
+	public JsonWriter writeDealio;
 	private Socket client;
+	private String userName;
 	private int id;
 
 	//TODO error handling
@@ -62,8 +58,7 @@ public class Connection implements Runnable
 		if (id == -1)
 		{
 			System.out.println("Server Full");
-			chatroomResponseDealio = createDealio(Dealio.chatroom_response);
-			System.out.print(chatroomResponseDealio.toString());
+			chatroomResponseDealio = createDealio(Dealio.chatroom_response, "", null, null, null);
 			writeDealio.writeObject(chatroomResponseDealio);
 			closed = true;
 			// TODO different closed handling?
@@ -73,7 +68,7 @@ public class Connection implements Runnable
 			System.out.println("connected");
 			chatroomBeginDealio = parseDealio.readObject();
 			System.out.println(chatroomBeginDealio.toString());
-			System.out.println(chatroomBeginDealio.toString().equals("{\"type\":\"chatroom-begin\",\"username\":\"temp\",\"len\":4}"));
+			//System.out.println(chatroomBeginDealio.toString().equals("{\"type\":\"chatroom-begin\",\"username\":\"temp\",\"len\":4}"));
 			String type = chatroomBeginDealio.getString("type");
 			Dealio dealio = Dealio.getType(type);
 			if(dealio != null)
@@ -85,12 +80,12 @@ public class Connection implements Runnable
 					{
 						System.out.println("username too long");
 					}
-					username = username + ":" + id;
+					userName = username + ":" + id;
 					System.out.println(username);
 					ChatServer.userMap.put(id, username);
-					chatroomResponseDealio = createDealio(Dealio.chatroom_response);
-					System.out.println(chatroomResponseDealio.toString());
+					chatroomResponseDealio = createDealio(Dealio.chatroom_response, "", null, null, null);
 					writeDealio.writeObject(chatroomResponseDealio);
+					//TODO send dealio to acknowledge new user
 				}
 				else
 				{
@@ -105,39 +100,46 @@ public class Connection implements Runnable
 		System.out.println("finished");
 	}
 
-	private JsonObject createDealio(Dealio dealioType)
+	private JsonObject createDealio(Dealio dealio, String message, JsonArray recipients, DealioError error, DealioUpdate update)
 	{
-		JsonObjectBuilder currentBuild = Json.createObjectBuilder();
-		switch(dealioType)
+		//Json.createArrayBuilder().build()
+		
+		JsonObject newDealio;
+		JsonObjectBuilder currentBuild = Json.createObjectBuilder().add("type", dealio.text);
+		switch(dealio)
 		{
 			case chatroom_response:
 				Object[] currentUserArray = ChatServer.userMap.values().toArray();
 				JsonArray userList = Json.createArrayBuilder(Arrays.asList(currentUserArray)).build();
-				currentBuild.add("type", "chatroom-response")
-							.add("id", id)
+				currentBuild.add("id", id)
 							.add("clientNo", ChatServer.userMap.size())
 							.add("users", userList);
 				break;
-			case chatroom_begin:
-				break;
+				
 			case chatroom_broadcast:
+				currentBuild.add("from", userName)
+							.add("to", recipients)
+							.add("message", message)
+							.add("message_length", message.length());
 				break;
-			case chatroom_end:
-				break;
+				
 			case chatroom_error:
+				currentBuild.add("type_of_error", error.text)
+							.add("id", userName);
 				break;
-			case chatroom_send:
-				break;
-			case chatroom_special:
-				break;
+				
 			case chatroom_update:
+				currentBuild.add("type_of_update", update.text)
+							.add("id", userName);
 				break;
+				
 			default:
+				System.out.println("Not a server dealio.");
 				break;
 		}
-
-		
-		return currentBuild.build();
+		newDealio = currentBuild.build();
+		System.out.println("created " + newDealio.toString());
+		return newDealio;
 	}
 	
 	public void close()
