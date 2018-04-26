@@ -5,6 +5,7 @@
 package server;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Arrays;
 import javax.json.Json;
@@ -34,7 +35,7 @@ public class Connection implements Runnable
 		closed = false;
 		try
 		{
-			parseDealio = Json.createReader(client.getInputStream());
+			parseDealio = Json.createReader(new InputStreamReader(client.getInputStream()));
 			writeDealio = Json.createWriter(client.getOutputStream());
 			client.setKeepAlive(true);
 		}

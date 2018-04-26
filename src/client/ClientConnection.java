@@ -5,6 +5,7 @@
 package client;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import javax.json.Json;
@@ -37,7 +38,7 @@ public class ClientConnection
 		try
 		{
 			writeDealio = Json.createWriter(server.getOutputStream());
-			parseDealio = Json.createReader(server.getInputStream());
+			parseDealio = Json.createReader(new InputStreamReader(server.getInputStream()));
 		}
 		catch (IOException e)
 		{	System.err.println(e);	}
