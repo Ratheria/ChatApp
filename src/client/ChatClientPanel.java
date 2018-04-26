@@ -34,9 +34,9 @@ public class ChatClientPanel extends JPanel
 	private Color outline;
 	private JScrollBar scrollBar;
 	private JLabel usersLabel;
-	private JLabel lblTop;
+	private JLabel topLabel;
 	private JButton sendButton;
-	private JButton exitButton;
+	private JPanel userPanel;
 	
 	public ChatClientPanel(ClientConnection base)
 	{
@@ -47,12 +47,13 @@ public class ChatClientPanel extends JPanel
 		displayCaret = (DefaultCaret)displayLog.getCaret();
 		inputField = new JTextField();
 		scroll = new JScrollPane(displayLog);
+		springLayout.putConstraint(SpringLayout.EAST, scroll, -120, SpringLayout.EAST, this);
 		outline = new Color(0, 255, 0);
 		scrollBar = scroll.getVerticalScrollBar();
 		usersLabel = new JLabel("");
-		lblTop = new JLabel("WTDP Chat Client");
+		topLabel = new JLabel("WTDP Chat Client");
 		sendButton = new JButton(" Send ");
-		exitButton = new JButton(" Exit ");
+		userPanel = new JPanel();
 		
 		setUpPanel();
 		setUpLayout();
@@ -65,9 +66,9 @@ public class ChatClientPanel extends JPanel
 		add(inputField);
 		add(scroll);
 		add(usersLabel);
-		add(lblTop);
+		add(topLabel);
 		add(sendButton);
-		add(exitButton);
+		add(userPanel);
 		
 		displayLog.setText("\tWelcome. Enter a username with fewer than 20 characters.\n");
 		inputField.requestFocusInWindow();
@@ -88,49 +89,43 @@ public class ChatClientPanel extends JPanel
 		inputField.setText("");
 		sendButton.setFocusPainted(false);
 		sendButton.setContentAreaFilled(false);
-		exitButton.setFocusPainted(false);
-		exitButton.setContentAreaFilled(false);
-		lblTop.setForeground(Color.GREEN);
+		topLabel.setForeground(Color.GREEN);
 		usersLabel.setForeground(Color.GREEN);
 		displayLog.setForeground(Color.GREEN);
 		displayLog.setBackground(Color.BLACK);
 		sendButton.setBackground(Color.BLACK);
 		sendButton.setForeground(Color.GREEN);
-		exitButton.setBackground(Color.BLACK);
-		exitButton.setForeground(Color.GREEN);
 		inputField.setForeground(Color.GREEN);
 		inputField.setBackground(Color.BLACK);
-		lblTop.setFont(new Font("Monospaced", Font.PLAIN, 20));
+		topLabel.setFont(new Font("Monospaced", Font.PLAIN, 20));
 		usersLabel.setFont(new Font("Monospaced", Font.PLAIN, 12));
 		sendButton.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		exitButton.setFont(new Font("Monospaced", Font.PLAIN, 12));
-		displayLog.setFont(new Font("DialogInput", Font.PLAIN, 15));
+		displayLog.setFont(new Font("DialogInput", Font.PLAIN, 14));
 		inputField.setFont(new Font("DialogInput", Font.PLAIN, 14));
+		springLayout.putConstraint(SpringLayout.NORTH, userPanel, 10, SpringLayout.SOUTH, usersLabel);
+		springLayout.putConstraint(SpringLayout.WEST, userPanel, 0, SpringLayout.EAST, scroll);
+		springLayout.putConstraint(SpringLayout.SOUTH, userPanel, 195, SpringLayout.NORTH, scroll);
+		springLayout.putConstraint(SpringLayout.EAST, userPanel, -25, SpringLayout.EAST, this);
 		springLayout.putConstraint(SpringLayout.WEST, scroll, 25, SpringLayout.WEST, this);
-		springLayout.putConstraint(SpringLayout.EAST, scroll, -25, SpringLayout.EAST, this);
-		springLayout.putConstraint(SpringLayout.NORTH, lblTop, 15, SpringLayout.NORTH, this);
-		springLayout.putConstraint(SpringLayout.SOUTH, lblTop, -10, SpringLayout.NORTH, scroll);
-		springLayout.putConstraint(SpringLayout.WEST, lblTop, 25, SpringLayout.WEST, this);
-		springLayout.putConstraint(SpringLayout.EAST, lblTop, -230, SpringLayout.EAST, this);
+		springLayout.putConstraint(SpringLayout.NORTH, topLabel, 15, SpringLayout.NORTH, this);
+		springLayout.putConstraint(SpringLayout.SOUTH, topLabel, -10, SpringLayout.NORTH, scroll);
+		springLayout.putConstraint(SpringLayout.WEST, topLabel, 25, SpringLayout.WEST, this);
+		springLayout.putConstraint(SpringLayout.EAST, topLabel, -230, SpringLayout.EAST, this);
 		springLayout.putConstraint(SpringLayout.SOUTH, inputField, -15, SpringLayout.SOUTH, this);
+		springLayout.putConstraint(SpringLayout.EAST, inputField, -25, SpringLayout.EAST, this);
+		springLayout.putConstraint(SpringLayout.WEST, inputField, 10, SpringLayout.EAST, sendButton);
 		springLayout.putConstraint(SpringLayout.EAST, usersLabel, -25, SpringLayout.EAST, this);
-		springLayout.putConstraint(SpringLayout.WEST, usersLabel, 135, SpringLayout.EAST, lblTop);
+		springLayout.putConstraint(SpringLayout.WEST, usersLabel, 135, SpringLayout.EAST, topLabel);
 		springLayout.putConstraint(SpringLayout.SOUTH, usersLabel, -10, SpringLayout.NORTH, scroll);
 		springLayout.putConstraint(SpringLayout.NORTH, scroll, 45, SpringLayout.NORTH, this);
 		springLayout.putConstraint(SpringLayout.NORTH, inputField, 15, SpringLayout.SOUTH, scroll);
-		springLayout.putConstraint(SpringLayout.EAST, inputField, 0, SpringLayout.EAST, scroll);
 		springLayout.putConstraint(SpringLayout.SOUTH, scroll, -60, SpringLayout.SOUTH, this);
 		springLayout.putConstraint(SpringLayout.NORTH, sendButton, 15, SpringLayout.SOUTH, scroll);
 		springLayout.putConstraint(SpringLayout.SOUTH, sendButton, -15, SpringLayout.SOUTH, this);
 		springLayout.putConstraint(SpringLayout.WEST, sendButton, 25, SpringLayout.WEST, this);
-		springLayout.putConstraint(SpringLayout.WEST, inputField, 10, SpringLayout.EAST, exitButton);
-		springLayout.putConstraint(SpringLayout.NORTH, exitButton, 15, SpringLayout.SOUTH, scroll);
-		springLayout.putConstraint(SpringLayout.SOUTH, exitButton, -15, SpringLayout.SOUTH, this);
-		springLayout.putConstraint(SpringLayout.WEST, exitButton, 10, SpringLayout.EAST, sendButton);
 		displayLog.setBorder(new EmptyBorder(5, 15, 5, 15));
 		scroll.setBorder(new LineBorder(new Color(0, 255, 0)));
 		sendButton.setBorder(BorderFactory.createLineBorder(Color.GREEN));
-		exitButton.setBorder(BorderFactory.createLineBorder(Color.GREEN));
 		inputField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(outline),
                 BorderFactory.createEmptyBorder(0, 55, 0, 0)));
 		inputField.requestFocusInWindow();
@@ -152,15 +147,6 @@ public class ChatClientPanel extends JPanel
 				displayLog.setText("");
 				inputField.setText("");
 				inputField.requestFocusInWindow();
-			}
-		});
-		
-		exitButton.addActionListener(new ActionListener()
-		{
-			@Override
-			public void actionPerformed(ActionEvent click) 
-			{
-				//TODO exit
 			}
 		});
 		
@@ -189,5 +175,4 @@ public class ChatClientPanel extends JPanel
 	{
 		//TODO
 	}
-	
 }

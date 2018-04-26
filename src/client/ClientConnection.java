@@ -15,6 +15,7 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonWriter;
 import dealio.Dealio;
+import server.ChatServer;
 
 public class ClientConnection
 {
@@ -64,6 +65,21 @@ public class ClientConnection
 				System.out.println(currentDealio.toString());
 				String type = currentDealio.getString("type");
 				Dealio dealio = Dealio.getType(type);
+				if(dealio != null)
+				{
+					if((dealio == Dealio.chatroom_response))
+					{
+						
+					}
+					else
+					{
+						System.out.println("unexpected dealio type");
+					}
+				}
+				else
+				{
+					System.out.println("malformed dealio");
+				}
 			}
 			else
 			{
@@ -113,7 +129,7 @@ public class ClientConnection
 		return connected;
 	}
 	
-	public void handleDealio(Dealio dealio)
+	public synchronized void handleDealio(Dealio dealio)
 	{
 		
 	}

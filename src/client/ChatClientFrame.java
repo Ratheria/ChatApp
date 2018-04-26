@@ -20,7 +20,7 @@ public class ChatClientFrame extends JFrame
 		setName("WTDP Chat Client");
 		this.setTitle("WTDP Chat Client");
 		setContentPane(panel);
-		setSize(750, 700);
+		setSize(850, 700);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}

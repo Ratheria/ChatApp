@@ -5,7 +5,8 @@
 package dealio;
 
 public enum DealioError
-{	//Beyond this first row, the alignment here wasn't actually by design. It was spooky.
+{	
+	//Beyond this first row, the alignment here wasn't actually by design. It was spooky.
 	unexpected_dealio_type("unexpected_dealio_type"), client_time_out("client_time_out"), 
 	special_unsupported("special_unsupported"), file_size_exceeded("file_size_exceeded"),
 	id_not_found("id_not_found"), user_name_length_exceeded("user_name_length_exceeded"), 

@@ -25,11 +25,11 @@ public class UpdateDisplay implements Runnable
 			try
 			{	
 				JsonObject currentDealio = base.parseDealio.readObject();
-				System.out.println(currentDealio.toString());
+				System.out.println("  " + currentDealio.toString());
 				String type = currentDealio.getString("type");
 				Dealio dealio = Dealio.getType(type);
 				base.handleDealio(dealio);
-				Thread.sleep(2000);	
+				Thread.sleep(100);	
 			}
 			catch (InterruptedException e)
 			{	e.printStackTrace();	}
