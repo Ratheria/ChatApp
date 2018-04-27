@@ -6,7 +6,9 @@ package server;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -35,9 +37,9 @@ public class Connection implements Runnable
 		closed = false;
 		try
 		{
-			parseDealio = Json.createReader(new InputStreamReader(client.getInputStream()));
+			parseDealio = Json.createReader(client.getInputStream());
 			writeDealio = Json.createWriter(client.getOutputStream());
-			client.setKeepAlive(true);
+			//client.setKeepAlive(true);
 		}
 		catch (IOException e){}
 	}
@@ -142,6 +144,35 @@ public class Connection implements Runnable
 		return newDealio;
 	}
 	
+	public synchronized void handleDealio(JsonObject currentDealio)
+	{
+		System.out.println(currentDealio.toString());
+		String type = currentDealio.getString("type");
+		Dealio dealio = Dealio.getType(type);
+		if(dealio != null)
+		{
+			switch(dealio)
+			{
+				case chatroom_begin:
+					
+					break;
+				case chatroom_update:
+					break;
+				case chatroom_broadcast:
+					break;
+				case chatroom_error:
+					break;
+				default:
+					System.out.println("Unexpected dealio type.");
+					break;
+			}
+		}
+	}
+	
+	/*
+	chatroom_begin		(false,	"chatroom-begin"),		chatroom_send	(false,	"chatroom-send"), 
+	chatroom_special	(false,	"chatroom-special"),	chatroom_end	(false,	"chatroom-end"),
+	*/
 	public void close()
 	{
 		try
@@ -156,4 +187,16 @@ public class Connection implements Runnable
 
 	public void setID(int id)
 	{	this.id = id;	}
+	
+	class ClientUpdate extends Thread
+	{
+		public void run()
+		{
+			while(!closed)
+			{
+				JsonObject currentDealio = parseDealio.readObject();
+				handleDealio(currentDealio);
+			}
+		}
+	}
 }
