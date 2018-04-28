@@ -194,8 +194,17 @@ public class Connection implements Runnable
 		{
 			while(!closed)
 			{
-				JsonObject currentDealio = parseDealio.readObject();
-				handleDealio(currentDealio);
+				try
+				{
+					parseDealio = Json.createReader(new InputStreamReader(client.getInputStream()));
+					JsonObject currentDealio = parseDealio.readObject();
+					handleDealio(currentDealio);
+				}
+				catch(IOException e)
+				{
+					closed = true;
+					System.out.println("triggered close");
+				}
 			}
 		}
 	}

@@ -29,11 +29,13 @@ public class ClientConnection
 	private JsonWriter writeDealio;
 	private boolean connected = false;
 	private boolean finished = false;
-
-	//{\"type\":\"chatroom-begin\",\"username\":\"temp\",\"len\":4}
+	
 	//{"type":"chatroom-begin","username":"temp","len":4}
 	
 	//TODO notABigDealio dealioOrNoDealio
+	
+	//TODO update gui
+	//TODO character limits and fine tuning
 	
 	public ClientConnection(Socket server, ChatClient gui)
 	{
@@ -57,7 +59,7 @@ public class ClientConnection
 		}
 		else
 		{
-			beginDealio = createDealio(Dealio.chatroom_begin, content);
+			beginDealio = createDealio(Dealio.chatroom_begin, content, null);
 			System.out.println(beginDealio);
 			writeDealio.writeObject(beginDealio);
 			userName = "" + content;
@@ -65,7 +67,7 @@ public class ClientConnection
 		}
 	}
 	
-	private JsonObject createDealio(Dealio dealioType, String content)
+	private JsonObject createDealio(Dealio dealioType, String message, JsonArray recipients)
 	{
 		JsonObject newDealio;
 		JsonObjectBuilder currentBuild = Json.createObjectBuilder();
@@ -73,14 +75,19 @@ public class ClientConnection
 		switch(dealioType)
 		{
 			case chatroom_begin:
-				currentBuild.add("username", content)
-				.add("len", content.length());
+				currentBuild.add("username", message)
+							.add("len", message.length());
 				break;
 				
 			case chatroom_end:
+				currentBuild.add("id", userName);		
 				break;
 				
 			case chatroom_send:
+				currentBuild.add("from", userName)
+							.add("to", recipients)
+							.add("message", message)
+							.add("message-length", message.length());
 				break;
 				
 			case chatroom_special:
@@ -97,7 +104,7 @@ public class ClientConnection
 	
 	public synchronized void handleDealio(JsonObject currentDealio)
 	{
-		System.out.println("f " + currentDealio.toString());
+		System.out.println(currentDealio.toString());
 		String type = currentDealio.getString("type");
 		Dealio dealio = Dealio.getType(type);
 		if(dealio != null)
@@ -136,12 +143,12 @@ public class ClientConnection
 	}
 
 	
-	
-	
-	
-	
-	
-	
+	public void close()
+	{
+		//TODO
+		//send chatroom-end dealio
+		//close thread then stop
+	}
 	
 	class ServerUpdate extends Thread
 	{
@@ -149,9 +156,16 @@ public class ClientConnection
 		{
 			while(!finished)
 			{
-				JsonObject currentDealio = parseDealio.readObject();
-				System.out.println("c");
-				handleDealio(currentDealio);
+				try
+				{
+					parseDealio = Json.createReader(new InputStreamReader(server.getInputStream()));
+					JsonObject currentDealio = parseDealio.readObject();
+					handleDealio(currentDealio);
+				}
+				catch(IOException e)
+				{
+					System.out.println("error");
+				}
 			}
 		}
 	}

@@ -221,6 +221,7 @@ public class ChatClient extends JFrame
 			    public void windowClosing(WindowEvent e)
 			    {
 			        //TODO
+			    	clientConnection.close();
 			    }
 			});
 		}
