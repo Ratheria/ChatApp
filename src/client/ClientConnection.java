@@ -8,9 +8,7 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -29,12 +27,13 @@ public class ClientConnection
 	private Socket server;
 	private int id;
 	private String userName;
-	private ArrayList<String> userList;
+	private static ArrayList<String> userList;
 	private ChatClient gui;
 	private ServerUpdate updateThread;
 	private InputStream parseDealio;
 	private OutputStream writeDealio;
 	private boolean finished = false;
+	private JsonObject last;
 
 	//TODO character limits and fine tuning
 	
@@ -42,6 +41,7 @@ public class ClientConnection
 	{
 		this.server = server;
 		this.gui = gui;
+		last = null;
 		try
 		{
 			parseDealio = new BufferedInputStream(server.getInputStream());
@@ -49,15 +49,17 @@ public class ClientConnection
 		}
 		catch (IOException e)
 		{	System.err.println(e);	}
-		updateThread = new ServerUpdate();
-		updateThread.start();
+		//updateThread = new ServerUpdate();
+		//updateThread.start();
+		new ServerUpdate().start();
 	}
 	
 	public synchronized void sendMessage(String content)
 	{
 		if(gui.connected)
 		{
-			sendToServer(createDealio(Dealio.chatroom_send, content, null));
+			//System.out.println("not doing this yet");
+			sendToServer(createDealio(Dealio.chatroom_send, content, Json.createArrayBuilder().build()));
 		}
 		else
 		{
@@ -136,19 +138,18 @@ public class ClientConnection
 						id = currentDealio.getInt("id");
 						if(id == -1)
 						{
-							gui.updateDisplay("Server is full.", true);
+							gui.updateDisplay("Server is full.");
 						}
 						else
 						{
-							gui.connected = true;
 							userName = userName + ":" + id;
 							JsonArray userJsonArray = currentDealio.getJsonArray("users");
 							userList = new ArrayList<String>();
 							for(JsonValue currentUserValue : userJsonArray) 
 							{
 							    userList.add( currentUserValue.toString() );
-							    System.out.println(currentUserValue.toString());
 							}
+							gui.connected = true;
 						}
 					}
 					break;
@@ -162,8 +163,9 @@ public class ClientConnection
 						update = DealioUpdate.leave;
 					}
 					String updatedText = " - - - User " + updatedUser + " just" + update.updateMessage + "the chatroom.";
-					gui.updateDisplay(updatedText, true);
+					gui.updateDisplay(updatedText);
 					System.out.println(updatedUser);
+					System.out.println(userList.contains(updatedUser));
 					if(!updatedUser.equals(userName))
 					{
 						if(update == DealioUpdate.enter)
@@ -175,14 +177,15 @@ public class ClientConnection
 							userList.remove(updatedUser);
 						}
 					}
+					System.out.println(userList.size());
 					if(userList.size() < 2)
 					{
-						gui.updateDisplay(" - - - You are alone on this server.", false);
+						gui.updateDisplay(" - - - You are alone on this server.");
 					}
 					break;
 					
 				case chatroom_broadcast:
-					String from = currentDealio.getString("from" + " : ");
+					String from = currentDealio.getString("from") + " said to ";
 					Object[] to = currentDealio.getJsonArray("to").toArray();
 					String sentTo = "everyone";
 					if(to.length == 1)
@@ -204,8 +207,8 @@ public class ClientConnection
 						sentTo = sentTo.substring(0, sentTo.length() - 1);
 					}
 					String message = currentDealio.getString("message");
-					String updateDisplayString = from + to + "\n" + message + "\n\n";
-					gui.updateDisplay(updateDisplayString, false);
+					String updateDisplayString = from + sentTo + "\n\t" + message;
+					gui.updateDisplay(updateDisplayString);
 					break;
 					
 				case chatroom_error:
@@ -252,13 +255,19 @@ public class ClientConnection
 						JsonReader dealioParser = Json.createReader(new StringReader(dealioString));
 						JsonObject currentDealio = dealioParser.readObject();
 						dealioParser.close();
-						handleDealio(currentDealio);
+						if(!currentDealio.equals(last))
+						{
+							last = currentDealio;
+							handleDealio(currentDealio);
+						}
+
 					}
 				}
 				catch(IOException e)
 				{
 					//TODO say something if the server goes offline
 					System.out.println("read error");
+					finished = true;
 				}
 			}
 		}

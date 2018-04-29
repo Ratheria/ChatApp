@@ -20,7 +20,7 @@ public class ChatServer
 {
 	public static final int PORT = 8029;
 	public static final Executor EXECUTOR = Executors.newCachedThreadPool();
-	public static final int MAX_CONNECTIONS = 2;
+	public static final int MAX_CONNECTIONS = 5;
 	public static boolean serverRunning = true;
 	public static Connection[] clientConnections;
 	public static Map<Integer, String> userMap = Collections.synchronizedMap(new HashMap<Integer, String>());

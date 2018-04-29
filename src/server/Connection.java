@@ -8,24 +8,15 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.StringReader;
-import java.net.InetAddress;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
-import javax.json.JsonWriter;
-import javax.json.stream.JsonParser;
-
 import dealio.Dealio;
 import dealio.DealioError;
 import dealio.DealioUpdate;
@@ -42,7 +33,7 @@ public class Connection implements Runnable
 	private boolean connected;
 
 	//TODO error handling
-	
+
 	public Connection(Socket client, ChatServer theServer)
 	{
 		this.theServer = theServer;
@@ -150,6 +141,7 @@ public class Connection implements Runnable
 						System.out.println(userName);
 						ChatServer.userMap.put(id, userName);
 						sendToClient(createDealio(Dealio.chatroom_response, "", null, null, null));
+						wait(150);
 						theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.enter), new String[]{});
 						connected = true;
 						//TODO 
@@ -174,7 +166,16 @@ public class Connection implements Runnable
 		}
 	}
 	
-	public void sendToClient(JsonObject currentDealio)
+	private void wait(int time)
+	{
+		int waitTime = time;
+		while(waitTime > 0)
+		{
+			waitTime--;
+		}
+	}
+	
+	public synchronized void sendToClient(JsonObject currentDealio)
 	{
 		try
 		{

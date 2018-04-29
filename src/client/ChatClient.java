@@ -73,9 +73,9 @@ public class ChatClient extends JFrame
 		clientConnection.sendMessage(message);
 	}
 	
-	public void updateDisplay(String toAppend, boolean first)
+	public void updateDisplay(String toAppend)
 	{
-		panel.updateDisplayLog(toAppend, first);
+		panel.updateDisplayLog(toAppend);
 	}
 	
 	public void connect()
@@ -135,7 +135,7 @@ public class ChatClient extends JFrame
 			add(sendButton);
 			add(userPanel);
 			
-			displayLog.setText("\tWelcome. Enter a username with fewer than 20 characters.\n");
+			displayLog.setText("\tWelcome. Enter a username with fewer than 20 characters.");
 			inputField.requestFocusInWindow();
 			displayCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 			UIManager.put("ScrollBarUI", "view.ScrollBarUI");
@@ -247,16 +247,15 @@ public class ChatClient extends JFrame
 			});
 		}
 		
-		public void updateDisplayLog(String toAppend, boolean first)
+		public void updateDisplayLog(String toAppend)
 		{
-			if(first)
-			{
-				displayLog.setText("");
-			}
-			displayLog.setText(displayLog.getText() + "\n\n" + toAppend);
+			String displayText = displayLog.getText();
+			//System.out.println(displayText);
+			displayLog.setText(displayText + "\n\n" + toAppend);
 			//displayCaret = (DefaultCaret)displayLog.getCaret();
 			//displayLog.setCaretPosition(displayLog.getDocument().getLength());
 			//scroll.setViewportView(displayLog);
+			//System.out.println(displayLog.getText());
 		}
 		
 		public void updateUsersLabel()
