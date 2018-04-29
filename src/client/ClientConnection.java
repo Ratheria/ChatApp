@@ -182,6 +182,7 @@ public class ClientConnection
 					{
 						gui.updateDisplay(" - - - You are alone on this server.");
 					}
+					gui.updateUsersLabel(userList);
 					break;
 					
 				case chatroom_broadcast:

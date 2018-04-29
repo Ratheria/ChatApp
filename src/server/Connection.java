@@ -236,6 +236,12 @@ public class Connection implements Runnable
 				}
 				catch(IOException e)
 				{
+					theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave), new String[]{});
+					int waitTime = 150;
+					while(waitTime > 0)
+					{
+						waitTime--;
+					}
 					closed = true;
 					System.out.println("triggered close");
 				}
