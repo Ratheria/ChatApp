@@ -37,6 +37,8 @@ public class ChatClient extends JFrame
 	private static Socket sock = null;
 	private ChatClientPanel panel;
 	private ClientConnection clientConnection;
+	public boolean connected;
+	private  String serverString;
 	
 	public ChatClient(String serverString)
 	{
@@ -44,17 +46,12 @@ public class ChatClient extends JFrame
 		panel = new ChatClientPanel(this);
 		setName("WTDP Chat Client");
 		this.setTitle("WTDP Chat Client");
+		this.serverString = serverString;
 		setContentPane(panel);
 		setSize(850, 700);
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		try
-		{
-			sock = new Socket(serverString, PORT);
-			clientConnection = new ClientConnection(sock, this);
-			//EXECUTOR.execute(chatClient);
-		}
-		catch (IOException e){e.printStackTrace();}
+		connected = false;
 	}
 	
 	public static void main(String[] args)
@@ -74,6 +71,21 @@ public class ChatClient extends JFrame
 	public void sendMessage(String message)
 	{
 		clientConnection.sendMessage(message);
+	}
+	
+	public void updateDisplay(String toAppend, boolean first)
+	{
+		panel.updateDisplayLog(toAppend, first);
+	}
+	
+	public void connect()
+	{
+		try
+		{
+			sock = new Socket(serverString, PORT);
+			clientConnection = new ClientConnection(sock, this);
+		}
+		catch (IOException e){e.printStackTrace();}
 	}
 	
 	class ChatClientPanel extends JPanel 
@@ -196,9 +208,11 @@ public class ChatClient extends JFrame
 				{
 					//TODO send
 					//TODO character limits
-					System.out.println(inputField.getText());
+					if(!frame.connected)
+					{
+						frame.connect();
+					}
 					sendMessage(inputField.getText());
-					displayLog.setText("");
 					inputField.setText("");
 					inputField.requestFocusInWindow();
 				}
@@ -221,17 +235,28 @@ public class ChatClient extends JFrame
 			    public void windowClosing(WindowEvent e)
 			    {
 			        //TODO
-			    	clientConnection.close();
+			    	if(frame.connected)
+			    	{
+				    	clientConnection.close();
+			    	}
+			    	else
+			    	{
+			    		System.exit(0);
+			    	}
 			    }
 			});
 		}
 		
-		public void updateDisplayLog(String toAppend)
+		public void updateDisplayLog(String toAppend, boolean first)
 		{
-			displayLog.append(toAppend);
-			displayCaret = (DefaultCaret)displayLog.getCaret();
-			displayLog.setCaretPosition(displayLog.getDocument().getLength());
-			scroll.setViewportView(displayLog);
+			if(first)
+			{
+				displayLog.setText("");
+			}
+			displayLog.setText(displayLog.getText() + "\n\n" + toAppend);
+			//displayCaret = (DefaultCaret)displayLog.getCaret();
+			//displayLog.setCaretPosition(displayLog.getDocument().getLength());
+			//scroll.setViewportView(displayLog);
 		}
 		
 		public void updateUsersLabel()

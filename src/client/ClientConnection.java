@@ -4,9 +4,14 @@
 
 package client;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import javax.json.Json;
@@ -15,26 +20,22 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonValue;
-import javax.json.JsonWriter;
 import dealio.Dealio;
+import dealio.DealioUpdate;
 
 public class ClientConnection
 {
+	@SuppressWarnings("unused")
 	private Socket server;
 	private int id;
 	private String userName;
 	private ArrayList<String> userList;
 	private ChatClient gui;
-	private JsonReader parseDealio;
-	private JsonWriter writeDealio;
-	private boolean connected = false;
+	private ServerUpdate updateThread;
+	private InputStream parseDealio;
+	private OutputStream writeDealio;
 	private boolean finished = false;
-	
-	//{"type":"chatroom-begin","username":"temp","len":4}
-	
-	//TODO notABigDealio dealioOrNoDealio
-	
-	//TODO update gui
+
 	//TODO character limits and fine tuning
 	
 	public ClientConnection(Socket server, ChatClient gui)
@@ -43,27 +44,25 @@ public class ClientConnection
 		this.gui = gui;
 		try
 		{
-			writeDealio = Json.createWriter(server.getOutputStream());
-			parseDealio = Json.createReader(new InputStreamReader(server.getInputStream()));
+			parseDealio = new BufferedInputStream(server.getInputStream());
+			writeDealio = new BufferedOutputStream(server.getOutputStream());
 		}
 		catch (IOException e)
 		{	System.err.println(e);	}
+		updateThread = new ServerUpdate();
+		updateThread.start();
 	}
 	
-	public void sendMessage(String content)
+	public synchronized void sendMessage(String content)
 	{
-		JsonObject beginDealio;
-		if(connected)
+		if(gui.connected)
 		{
-			//TODO
+			sendToServer(createDealio(Dealio.chatroom_send, content, null));
 		}
 		else
 		{
-			beginDealio = createDealio(Dealio.chatroom_begin, content, null);
-			System.out.println(beginDealio);
-			writeDealio.writeObject(beginDealio);
+			sendToServer(createDealio(Dealio.chatroom_begin, content, null));
 			userName = "" + content;
-			new ServerUpdate().start();
 		}
 	}
 	
@@ -91,6 +90,7 @@ public class ClientConnection
 				break;
 				
 			case chatroom_special:
+				//TODO not supported yet
 				break;
 
 			default:
@@ -100,6 +100,21 @@ public class ClientConnection
 		newDealio = currentBuild.build();
 		System.out.println("created " + newDealio.toString());
 		return newDealio;
+	}
+	
+	public synchronized void sendToServer(JsonObject currentDealio)
+	{
+		try
+		{
+			byte[] toWrite = currentDealio.toString().getBytes();
+			writeDealio.write(toWrite, 0, toWrite.length);
+			writeDealio.flush();
+			System.out.println("sent " + currentDealio.toString());
+		}
+		catch(IOException e)
+		{
+			System.out.println("write error");
+		}
 	}
 	
 	public synchronized void handleDealio(JsonObject currentDealio)
@@ -112,29 +127,91 @@ public class ClientConnection
 			switch(dealio)
 			{
 				case chatroom_response:
-					if(connected)
+					if(gui.connected)
 					{
 						System.out.println("Unexpected dealio type.");
 					}
 					else
 					{
 						id = currentDealio.getInt("id");
-						userName = userName + ":" + id;
-						JsonArray userJsonArray = currentDealio.getJsonArray("users");
-						userList = new ArrayList<String>();
-						for(JsonValue currentUserValue : userJsonArray) 
+						if(id == -1)
 						{
-						    userList.add( currentUserValue.toString() );
+							gui.updateDisplay("Server is full.", true);
 						}
-						connected = true;
+						else
+						{
+							gui.connected = true;
+							userName = userName + ":" + id;
+							JsonArray userJsonArray = currentDealio.getJsonArray("users");
+							userList = new ArrayList<String>();
+							for(JsonValue currentUserValue : userJsonArray) 
+							{
+							    userList.add( currentUserValue.toString() );
+							    System.out.println(currentUserValue.toString());
+							}
+						}
 					}
 					break;
+					
 				case chatroom_update:
+					String updatedUser = currentDealio.getString("id");
+					String updateType = currentDealio.getString("type_of_update");
+					DealioUpdate update = DealioUpdate.enter;
+					if(!update.text.equals(updateType))
+					{
+						update = DealioUpdate.leave;
+					}
+					String updatedText = " - - - User " + updatedUser + " just" + update.updateMessage + "the chatroom.";
+					gui.updateDisplay(updatedText, true);
+					System.out.println(updatedUser);
+					if(!updatedUser.equals(userName))
+					{
+						if(update == DealioUpdate.enter)
+						{
+							userList.add(updatedUser);
+						}
+						else
+						{
+							userList.remove(updatedUser);
+						}
+					}
+					if(userList.size() < 2)
+					{
+						gui.updateDisplay(" - - - You are alone on this server.", false);
+					}
 					break;
+					
 				case chatroom_broadcast:
+					String from = currentDealio.getString("from" + " : ");
+					Object[] to = currentDealio.getJsonArray("to").toArray();
+					String sentTo = "everyone";
+					if(to.length == 1)
+					{
+						sentTo = "you";
+					}
+					else if(to.length > 1)
+					{
+						sentTo = "you,";
+						for(Object user : to)
+						{
+							String userString = (String) user;
+							if(user != null && userString.equals(userName)){	}
+							else
+							{
+								sentTo = sentTo + " " + userString + ",";
+							}
+						}
+						sentTo = sentTo.substring(0, sentTo.length() - 1);
+					}
+					String message = currentDealio.getString("message");
+					String updateDisplayString = from + to + "\n" + message + "\n\n";
+					gui.updateDisplay(updateDisplayString, false);
 					break;
+					
 				case chatroom_error:
+					System.out.println(currentDealio.getString("type_of_error"));
 					break;
+					
 				default:
 					System.out.println("Unexpected dealio type.");
 					break;
@@ -146,8 +223,10 @@ public class ClientConnection
 	public void close()
 	{
 		//TODO
-		//send chatroom-end dealio
-		//close thread then stop
+		sendToServer(createDealio(Dealio.chatroom_end, "", null));
+		//updateThread.interrupt();
+		finished = true;
+		System.exit(0);
 	}
 	
 	class ServerUpdate extends Thread
@@ -158,13 +237,28 @@ public class ClientConnection
 			{
 				try
 				{
-					parseDealio = Json.createReader(new InputStreamReader(server.getInputStream()));
-					JsonObject currentDealio = parseDealio.readObject();
-					handleDealio(currentDealio);
+					@SuppressWarnings("unused")
+					int numBytes;
+					byte[] buffer = new byte[1024];
+					String dealioString = "";
+					while ((numBytes = parseDealio.read(buffer)) != -1) 
+					{
+						dealioString += new String(buffer).trim();
+						//System.out.println(dealioString);
+						break;
+					}	
+					if(dealioString.length() > 1)
+					{
+						JsonReader dealioParser = Json.createReader(new StringReader(dealioString));
+						JsonObject currentDealio = dealioParser.readObject();
+						dealioParser.close();
+						handleDealio(currentDealio);
+					}
 				}
 				catch(IOException e)
 				{
-					System.out.println("error");
+					//TODO say something if the server goes offline
+					System.out.println("read error");
 				}
 			}
 		}

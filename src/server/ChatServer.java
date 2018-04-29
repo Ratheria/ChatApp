@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 import javax.json.JsonObject;
+
 
 public class ChatServer
 {
@@ -29,58 +29,79 @@ public class ChatServer
 	//TODO server GUI?
 	//TODO synchronized client write
 	
-	public static void main(String[] args) throws IOException 
+	public ChatServer() throws IOException
 	{
 		clientConnections = new Connection[MAX_CONNECTIONS];
 		userMap = new HashMap<Integer, String>();
-		try 
+		sock = new ServerSocket(PORT);
+		EXECUTOR.execute(new UpdateConnections());
+		while(serverRunning)
 		{
-			sock = new ServerSocket(PORT);
-			EXECUTOR.execute(new UpdateConnections());
-			while(serverRunning)
-			{
-				Connection latestConnection = new Connection(sock.accept());
-				int firstNull = -1;
-		        for (int i = 0; i < MAX_CONNECTIONS; i++) 
-		        {
-		        	if (clientConnections[i] == null) 
-		        	{
-		        		//System.out.println("Connected");
-		        		firstNull = i;
-		        		clientConnections[i] = latestConnection;
-		        		userMap.put(i, " ");
-		        		break;
-		        	}
-		        }
-	        	latestConnection.setID(firstNull);
-	        	EXECUTOR.execute(latestConnection);
-			}
+			Connection latestConnection = new Connection(sock.accept(), this);
+			int firstNull = -1;
+	        for (int i = 0; i < MAX_CONNECTIONS; i++) 
+	        {
+	        	if (clientConnections[i] == null) 
+	        	{
+	        		//System.out.println("Connected");
+	        		firstNull = i;
+	        		clientConnections[i] = latestConnection;
+	        		userMap.put(i, " ");
+	        		break;
+	        	}
+	        }
+        	latestConnection.setID(firstNull);
+        	EXECUTOR.execute(latestConnection);
 		}
-		catch (IOException ioe) { }
-		finally 
-		{
-			if (sock != null)
-			{	sock.close();	}
-		}
+		if (sock != null)
+		{	sock.close();	}
 	}
 	
-	public synchronized void sendDealio(JsonObject dealio, String[] receiving)
+	public static void main(String[] args) throws IOException 
 	{
-		ArrayList<String> receivingList = new ArrayList<String>(Arrays.asList(receiving));
-		if(receiving == null)
+		new ChatServer();
+	}
+	
+	public synchronized static void updateConnections()
+	{
+		Connection connection;
+		for (int i = 0; i < ChatServer.MAX_CONNECTIONS; i++) 
+	    {
+			connection = clientConnections[i];
+			if(connection != null)
+			{
+	        	if(connection.closed)
+	        	{
+	        		connection.close();
+	        		Integer currentID = new Integer(i);
+	        		userMap.remove(currentID);
+	        		clientConnections[i] = null;
+	        	}
+			}
+	    }
+	}
+	
+	public synchronized void sendDealio(JsonObject dealio, Object[] receiving)
+	{
+		//Only messages that go to other clients pass through here.
+		if(receiving.length < 1)
 		{
 			for(Connection currentConnection : clientConnections)
 			{
-				currentConnection.writeDealio.writeObject(dealio);
+				if(currentConnection != null)
+				{
+					currentConnection.sendToClient(dealio);
+				}
 			}
 		}
 		else
 		{
+			ArrayList<Object> receivingList = new ArrayList<Object>(Arrays.asList(receiving));
 			for(Map.Entry<Integer, String> entry : userMap.entrySet())
 			{
 				if(receivingList.contains(entry.getValue()))
 				{
-					clientConnections[entry.getKey().intValue()].writeDealio.writeObject(dealio);
+					clientConnections[entry.getKey().intValue()].sendToClient(dealio);
 				}
 			}
 		}
