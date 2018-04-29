@@ -147,7 +147,8 @@ public class ClientConnection
 							userList = new ArrayList<String>();
 							for(JsonValue currentUserValue : userJsonArray) 
 							{
-							    userList.add( currentUserValue.toString() );
+								String CUV = currentUserValue.toString();
+							    userList.add( CUV.substring(1, CUV.length() - 1) );
 							}
 							gui.connected = true;
 						}
@@ -256,7 +257,7 @@ public class ClientConnection
 						JsonReader dealioParser = Json.createReader(new StringReader(dealioString));
 						JsonObject currentDealio = dealioParser.readObject();
 						dealioParser.close();
-						if(!currentDealio.equals(last))
+						if(!(currentDealio.equals(last)))
 						{
 							last = currentDealio;
 							handleDealio(currentDealio);

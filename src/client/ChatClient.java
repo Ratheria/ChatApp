@@ -15,15 +15,18 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JTextField;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.PlainDocument;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.SpringLayout;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
@@ -108,7 +111,7 @@ public class ChatClient extends JFrame
 		private JLabel usersLabel;
 		private JLabel topLabel;
 		private JButton sendButton;
-		private JPanel userPanel;
+		//private JPanel userPanel;
 		
 		public ChatClientPanel(ChatClient frame)
 		{
@@ -124,7 +127,7 @@ public class ChatClient extends JFrame
 			usersLabel = new JLabel("");
 			topLabel = new JLabel("WTDP Chat Client");
 			sendButton = new JButton(" Send ");
-			userPanel = new JPanel();
+			//userPanel = new JPanel();
 			
 			setUpPanel();
 			setUpLayout();
@@ -139,10 +142,11 @@ public class ChatClient extends JFrame
 			add(usersLabel);
 			add(topLabel);
 			add(sendButton);
-			add(userPanel);
+			//add(userPanel);
 			
 			displayLog.setText("\tWelcome. Enter a username with fewer than 20 characters.");
 			inputField.requestFocusInWindow();
+			inputField.setDocument(new JTextFieldLimit(20));
 			displayCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 			UIManager.put("ScrollBarUI", "view.ScrollBarUI");
 			scrollBar.setUI(new NewScrollBarUI());
@@ -204,27 +208,19 @@ public class ChatClient extends JFrame
 				@Override
 				public void actionPerformed(ActionEvent click) 
 				{
-					//TODO send
-					//TODO character limits
-					if(!frame.connected)
+					String input = inputField.getText();
+					if(input.length() > 0)
 					{
-						frame.connect();
+						//TODO send
+						//TODO character limits
+						if(!frame.connected)
+						{
+							frame.connect();
+						}
+						sendMessage(inputField.getText());
+						inputField.setText("");
 					}
-					sendMessage(inputField.getText());
-					inputField.setText("");
 					inputField.requestFocusInWindow();
-				}
-			});
-			
-			inputField.addActionListener(new ActionListener()
-			{
-				@Override
-				public void actionPerformed(ActionEvent e) 
-				{
-					if(inputField.getText().length() > 0)
-					{
-						
-					}
 				}
 			});
 			
@@ -265,8 +261,46 @@ public class ChatClient extends JFrame
 			}
 			newText = newText.substring(0, newText.length() - 1);
 			usersLabel.setText(newText);
+			if(connected)
+			{
+				inputField.setDocument(new JTextFieldLimit(280));
+			}
+			inputField.setText("");
+			inputField.requestFocusInWindow();
 		}
 
+		
+		class JTextFieldLimit extends PlainDocument
+		{
+			private static final long serialVersionUID = 1L;
+			private int limit;
+
+			JTextFieldLimit(int limit)
+			{
+				super();
+				this.limit = limit;
+			}
+
+			JTextFieldLimit(int limit, boolean upper)
+			{
+				super();
+				this.limit = limit;
+			}
+
+			public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException
+			{
+				if (str == null) 
+				{
+					return;
+				}
+
+				if ((getLength() + str.length()) <= limit)
+				{
+					super.insertString(offset, str, attr);
+				}
+			}
+		}
 	}
+	
 }
 
