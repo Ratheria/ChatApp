@@ -27,7 +27,6 @@ public class ChatServer
 	private static ServerSocket sock = null;
 	
 	//TODO server GUI?
-	//TODO synchronized client write
 	
 	public ChatServer() throws IOException
 	{

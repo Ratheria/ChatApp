@@ -144,7 +144,6 @@ public class Connection implements Runnable
 						wait(150);
 						theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.enter), new String[]{});
 						connected = true;
-						//TODO 
 					}
 					break;
 				case chatroom_send:
