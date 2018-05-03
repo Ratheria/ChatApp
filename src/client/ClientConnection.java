@@ -18,7 +18,6 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
-import javax.json.JsonString;
 import javax.json.JsonValue;
 import dealio.Dealio;
 import dealio.DealioUpdate;
@@ -31,7 +30,7 @@ public class ClientConnection
 	private String userName;
 	private static ArrayList<String> userList;
 	private ChatClient gui;
-	private ServerUpdate updateThread;
+	//private ServerUpdate updateThread;
 	private InputStream parseDealio;
 	private OutputStream writeDealio;
 	private boolean finished = false;

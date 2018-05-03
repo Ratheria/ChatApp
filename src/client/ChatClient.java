@@ -21,10 +21,6 @@ import javax.swing.JTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObjectBuilder;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -180,7 +176,7 @@ public class ChatClient extends JFrame
 			inputField.setForeground(Color.GREEN);
 			inputField.setBackground(Color.BLACK);
 			topLabel.setFont(new Font("Monospaced", Font.PLAIN, 22));
-			usersLabel.setFont(new Font("Monospaced", Font.PLAIN, 10));
+			usersLabel.setFont(new Font("Monospaced", Font.PLAIN, 11));
 			sendButton.setFont(new Font("Monospaced", Font.PLAIN, 14));
 			displayLog.setFont(new Font("DialogInput", Font.PLAIN, 14));
 			inputField.setFont(new Font("DialogInput", Font.PLAIN, 16));
@@ -220,7 +216,7 @@ public class ChatClient extends JFrame
 			textField.setBackground(Color.BLACK);
 			add(textField);
 			
-			lblToUser = new JLabel("To User  ");
+			lblToUser = new JLabel("To User ");
 			springLayout.putConstraint(SpringLayout.WEST, textField, 0, SpringLayout.EAST, lblToUser);
 			springLayout.putConstraint(SpringLayout.WEST, lblToUser, 0, SpringLayout.WEST, inputField);
 			springLayout.putConstraint(SpringLayout.NORTH, lblToUser, 6, SpringLayout.SOUTH, inputField);
@@ -230,7 +226,7 @@ public class ChatClient extends JFrame
 			lblToUser.setHorizontalAlignment(SwingConstants.CENTER);
 			lblToUser.setHorizontalTextPosition(SwingConstants.RIGHT);
 			lblToUser.setForeground(Color.GREEN);
-			lblToUser.setFont(new Font("Monospaced", Font.PLAIN, 11));
+			lblToUser.setFont(new Font("Monospaced", Font.PLAIN, 12));
 			add(lblToUser);
 		}
 		

@@ -24,6 +24,7 @@ import dealio.DealioUpdate;
 public class Connection implements Runnable
 {
 	public boolean closed;
+	public boolean closedNaturally;
 	public InputStream parseDealio;
 	public OutputStream writeDealio;
 	private Socket client;
@@ -40,6 +41,7 @@ public class Connection implements Runnable
 		this.theServer = theServer;
 		this.client = client;
 		closed = false;
+		closedNaturally = false;
 		connected = false;
 		try
 		{
@@ -121,6 +123,15 @@ public class Connection implements Runnable
 		return newDealio;
 	}
 	
+	private void wait(int time)
+	{
+		int waitTime = time;
+		while(waitTime > 0)
+		{
+			waitTime--;
+		}
+	}
+	
 	public synchronized void handleDealio(JsonObject currentDealio)
 	{
 		System.out.println(currentDealio.toString());
@@ -147,17 +158,22 @@ public class Connection implements Runnable
 						connected = true;
 					}
 					break;
+					
 				case chatroom_send:
 					JsonArray receiving = currentDealio.getJsonArray("to");
 					theServer.sendDealio(createDealio(Dealio.chatroom_broadcast, currentDealio.getString("message"), currentDealio.getJsonArray("to"), null, null), receiving);
 					break;
+					
 				case chatroom_special:
 					sendToClient(createDealio(Dealio.chatroom_error, "", null, DealioError.special_unsupported, null));
 					break;
+					
 				case chatroom_end:
-					theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave), Json.createArrayBuilder().build());
+					leaveChatroom();
 					closed = true;
+					closedNaturally = true;
 					break;
+					
 				default:
 					System.out.println("Unexpected dealio type.");
 					break;
@@ -166,13 +182,9 @@ public class Connection implements Runnable
 		}
 	}
 	
-	private void wait(int time)
+	public void leaveChatroom()
 	{
-		int waitTime = time;
-		while(waitTime > 0)
-		{
-			waitTime--;
-		}
+		theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave), Json.createArrayBuilder().build());
 	}
 	
 	public synchronized void sendToClient(JsonObject currentDealio)
@@ -187,6 +199,7 @@ public class Connection implements Runnable
 		catch(IOException e)
 		{
 			System.out.println("write error");
+			closed = true;
 		}
 	}
 	

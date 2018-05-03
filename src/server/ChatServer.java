@@ -6,14 +6,11 @@ package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonString;
@@ -36,7 +33,6 @@ public class ChatServer
 		clientConnections = new Connection[MAX_CONNECTIONS];
 		userMap = new HashMap<Integer, String>();
 		sock = new ServerSocket(PORT);
-		EXECUTOR.execute(new UpdateConnections());
 		while(serverRunning)
 		{
 			Connection latestConnection = new Connection(sock.accept(), this);
@@ -64,7 +60,7 @@ public class ChatServer
 		new ChatServer();
 	}
 	
-	public synchronized static void updateConnections()
+	public synchronized void updateConnections()
 	{
 		Connection connection;
 		for (int i = 0; i < ChatServer.MAX_CONNECTIONS; i++) 
@@ -74,10 +70,14 @@ public class ChatServer
 			{
 	        	if(connection.closed)
 	        	{
-	        		connection.close();
 	        		Integer currentID = new Integer(i);
 	        		userMap.remove(currentID);
 	        		clientConnections[i] = null;
+	        		if(!connection.closedNaturally)
+	        		{
+	        			connection.leaveChatroom();
+	        		}
+	        		connection.close();
 	        	}
 			}
 	    }
@@ -86,6 +86,7 @@ public class ChatServer
 	public synchronized void sendDealio(JsonObject dealio, JsonArray receiving)
 	{
 		//Only messages that go to other clients pass through here.
+		updateConnections();
 		if(receiving.isEmpty())
 		{
 			for(Connection currentConnection : clientConnections)
