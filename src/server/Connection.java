@@ -33,6 +33,7 @@ public class Connection implements Runnable
 	private boolean connected;
 
 	//TODO error handling
+	//TODO thread save closing
 
 	public Connection(Socket client, ChatServer theServer)
 	{
@@ -142,19 +143,19 @@ public class Connection implements Runnable
 						ChatServer.userMap.put(id, userName);
 						sendToClient(createDealio(Dealio.chatroom_response, "", null, null, null));
 						wait(150);
-						theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.enter), new String[]{});
+						theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.enter), Json.createArrayBuilder().build());
 						connected = true;
 					}
 					break;
 				case chatroom_send:
-					Object[] receiving = currentDealio.getJsonArray("to").toArray();
+					JsonArray receiving = currentDealio.getJsonArray("to");
 					theServer.sendDealio(createDealio(Dealio.chatroom_broadcast, currentDealio.getString("message"), currentDealio.getJsonArray("to"), null, null), receiving);
 					break;
 				case chatroom_special:
 					sendToClient(createDealio(Dealio.chatroom_error, "", null, DealioError.special_unsupported, null));
 					break;
 				case chatroom_end:
-					theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave), new String[]{});
+					theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave), Json.createArrayBuilder().build());
 					closed = true;
 					break;
 				default:
@@ -235,7 +236,7 @@ public class Connection implements Runnable
 				}
 				catch(IOException e)
 				{
-					theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave), new String[]{});
+					theServer.sendDealio(createDealio(Dealio.chatroom_update, "", null, null, DealioUpdate.leave),Json.createArrayBuilder().build());
 					int waitTime = 150;
 					while(waitTime > 0)
 					{

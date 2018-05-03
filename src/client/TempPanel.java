@@ -24,6 +24,7 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import javax.swing.text.DefaultCaret;
+import javax.swing.SwingConstants;
 
 class TempPanel extends JPanel 
 {
@@ -39,6 +40,8 @@ class TempPanel extends JPanel
 	private JLabel usersLabel;
 	private JLabel topLabel;
 	private JButton sendButton;
+	private JTextField textField;
+	private JLabel lblToUser;
 	
 	public TempPanel(ChatClient frame)
 	{
@@ -54,6 +57,7 @@ class TempPanel extends JPanel
 		usersLabel = new JLabel("users");
 		topLabel = new JLabel("WTDP Chat Client");
 		sendButton = new JButton(" Send ");
+		springLayout.putConstraint(SpringLayout.NORTH, sendButton, 20, SpringLayout.NORTH, usersLabel);
 		
 		setUpPanel();
 		setUpLayout();
@@ -69,6 +73,31 @@ class TempPanel extends JPanel
 		add(sendButton);
 		
 		displayLog.setText("\tWelcome. Enter a username with fewer than 20 characters.");
+		
+		textField = new JTextField();
+		springLayout.putConstraint(SpringLayout.NORTH, textField, 2, SpringLayout.SOUTH, inputField);
+		springLayout.putConstraint(SpringLayout.EAST, textField, 0, SpringLayout.EAST, inputField);
+		textField.setText("");
+		textField.setForeground(Color.GREEN);
+		textField.setFont(new Font("DialogInput", Font.PLAIN, 16));
+		textField.setColumns(20);
+		textField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(outline),
+		                BorderFactory.createEmptyBorder(0, 55, 0, 0)));
+		textField.setBackground(Color.BLACK);
+		add(textField);
+		
+		lblToUser = new JLabel("To User  ");
+		springLayout.putConstraint(SpringLayout.WEST, textField, 0, SpringLayout.EAST, lblToUser);
+		springLayout.putConstraint(SpringLayout.WEST, lblToUser, 0, SpringLayout.WEST, inputField);
+		springLayout.putConstraint(SpringLayout.NORTH, lblToUser, 6, SpringLayout.SOUTH, inputField);
+		springLayout.putConstraint(SpringLayout.SOUTH, lblToUser, -10, SpringLayout.SOUTH, this);
+		lblToUser.setVerticalAlignment(SwingConstants.TOP);
+		lblToUser.setVerticalTextPosition(SwingConstants.TOP);
+		lblToUser.setHorizontalAlignment(SwingConstants.CENTER);
+		lblToUser.setHorizontalTextPosition(SwingConstants.RIGHT);
+		lblToUser.setForeground(Color.GREEN);
+		lblToUser.setFont(new Font("Monospaced", Font.PLAIN, 11));
+		add(lblToUser);
 		inputField.requestFocusInWindow();
 		displayCaret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
 		UIManager.put("ScrollBarUI", "view.ScrollBarUI");
@@ -110,7 +139,6 @@ class TempPanel extends JPanel
 		springLayout.putConstraint(SpringLayout.NORTH, usersLabel, 0, SpringLayout.SOUTH, scroll);
 		springLayout.putConstraint(SpringLayout.WEST, usersLabel, 0, SpringLayout.WEST, scroll);
 		springLayout.putConstraint(SpringLayout.EAST, usersLabel, 0, SpringLayout.EAST, inputField);
-		springLayout.putConstraint(SpringLayout.NORTH, sendButton, 25, SpringLayout.NORTH, usersLabel);
 		springLayout.putConstraint(SpringLayout.NORTH, inputField, 0, SpringLayout.NORTH, sendButton);
 		springLayout.putConstraint(SpringLayout.WEST, scroll, 25, SpringLayout.WEST, this);
 		springLayout.putConstraint(SpringLayout.WEST, topLabel, 25, SpringLayout.WEST, this);

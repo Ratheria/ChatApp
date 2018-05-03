@@ -13,7 +13,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
+
+import javax.json.JsonArray;
 import javax.json.JsonObject;
+import javax.json.JsonString;
 
 
 public class ChatServer
@@ -80,10 +83,10 @@ public class ChatServer
 	    }
 	}
 	
-	public synchronized void sendDealio(JsonObject dealio, Object[] receiving)
+	public synchronized void sendDealio(JsonObject dealio, JsonArray receiving)
 	{
 		//Only messages that go to other clients pass through here.
-		if(receiving.length < 1)
+		if(receiving.isEmpty())
 		{
 			for(Connection currentConnection : clientConnections)
 			{
@@ -95,13 +98,15 @@ public class ChatServer
 		}
 		else
 		{
-			ArrayList<Object> receivingList = new ArrayList<Object>(Arrays.asList(receiving));
-			for(Map.Entry<Integer, String> entry : userMap.entrySet())
+			for (JsonString value : receiving.getValuesAs(JsonString.class))
 			{
-				if(receivingList.contains(entry.getValue()))
-				{
-					clientConnections[entry.getKey().intValue()].sendToClient(dealio);
-				}
+	            String userStringValue = value.getString();
+	            int userIntValue = Integer.parseInt(userStringValue.substring(userStringValue.indexOf(":") + 1));
+	            Connection current = clientConnections[userIntValue];
+	            if(current != null)
+	            {
+	            	current.sendToClient(dealio);
+	            }
 			}
 		}
 	}

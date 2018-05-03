@@ -21,6 +21,10 @@ import javax.swing.JTextField;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.PlainDocument;
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObjectBuilder;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
@@ -28,6 +32,7 @@ import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.SpringLayout;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
@@ -72,9 +77,9 @@ public class ChatClient extends JFrame
 		}
 	}
 	
-	public void sendMessage(String message)
+	public void sendMessage(String message, String recipients)
 	{
-		clientConnection.sendMessage(message);
+		clientConnection.sendMessage(message, recipients);
 	}
 	
 	public void updateDisplay(String toAppend)
@@ -112,6 +117,8 @@ public class ChatClient extends JFrame
 		private JLabel topLabel;
 		private JButton sendButton;
 		//private JPanel userPanel;
+		private JTextField textField;
+		private JLabel lblToUser;
 		
 		public ChatClientPanel(ChatClient frame)
 		{
@@ -199,6 +206,32 @@ public class ChatClient extends JFrame
 			inputField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(outline),
 	                BorderFactory.createEmptyBorder(0, 55, 0, 0)));
 			inputField.requestFocusInWindow();
+			
+			textField = new JTextField();
+			springLayout.putConstraint(SpringLayout.NORTH, textField, 2, SpringLayout.SOUTH, inputField);
+			springLayout.putConstraint(SpringLayout.EAST, textField, 0, SpringLayout.EAST, inputField);
+			textField.setText("");
+			textField.setForeground(Color.GREEN);
+			textField.setFont(new Font("DialogInput", Font.PLAIN, 16));
+			textField.setColumns(20);
+			textField.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(outline),
+
+			                BorderFactory.createEmptyBorder(0, 55, 0, 0)));
+			textField.setBackground(Color.BLACK);
+			add(textField);
+			
+			lblToUser = new JLabel("To User  ");
+			springLayout.putConstraint(SpringLayout.WEST, textField, 0, SpringLayout.EAST, lblToUser);
+			springLayout.putConstraint(SpringLayout.WEST, lblToUser, 0, SpringLayout.WEST, inputField);
+			springLayout.putConstraint(SpringLayout.NORTH, lblToUser, 6, SpringLayout.SOUTH, inputField);
+			springLayout.putConstraint(SpringLayout.SOUTH, lblToUser, -10, SpringLayout.SOUTH, this);
+			lblToUser.setVerticalAlignment(SwingConstants.TOP);
+			lblToUser.setVerticalTextPosition(SwingConstants.TOP);
+			lblToUser.setHorizontalAlignment(SwingConstants.CENTER);
+			lblToUser.setHorizontalTextPosition(SwingConstants.RIGHT);
+			lblToUser.setForeground(Color.GREEN);
+			lblToUser.setFont(new Font("Monospaced", Font.PLAIN, 11));
+			add(lblToUser);
 		}
 		
 		private void setUpListeners() 
@@ -212,13 +245,13 @@ public class ChatClient extends JFrame
 					if(input.length() > 0)
 					{
 						//TODO send
-						//TODO character limits
 						if(!frame.connected)
 						{
 							frame.connect();
 						}
-						sendMessage(inputField.getText());
+						sendMessage(inputField.getText(), textField.getText());
 						inputField.setText("");
+						textField.setText("");
 					}
 					inputField.requestFocusInWindow();
 				}
@@ -246,9 +279,9 @@ public class ChatClient extends JFrame
 			String displayText = displayLog.getText();
 			//System.out.println(displayText);
 			displayLog.setText(displayText + "\n\n" + toAppend);
-			//displayCaret = (DefaultCaret)displayLog.getCaret();
-			//displayLog.setCaretPosition(displayLog.getDocument().getLength());
-			//scroll.setViewportView(displayLog);
+			displayCaret = (DefaultCaret)displayLog.getCaret();
+			displayLog.setCaretPosition(displayLog.getDocument().getLength());
+			scroll.setViewportView(displayLog);
 			//System.out.println(displayLog.getText());
 		}
 		

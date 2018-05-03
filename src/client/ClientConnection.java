@@ -14,9 +14,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import javax.json.Json;
 import javax.json.JsonArray;
+import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
+import javax.json.JsonString;
 import javax.json.JsonValue;
 import dealio.Dealio;
 import dealio.DealioUpdate;
@@ -35,7 +37,8 @@ public class ClientConnection
 	private boolean finished = false;
 	private JsonObject last;
 
-	//TODO character limits and fine tuning
+	//TODO fine tuning
+	//TODO managing threads
 	
 	public ClientConnection(Socket server, ChatClient gui)
 	{
@@ -54,12 +57,32 @@ public class ClientConnection
 		new ServerUpdate().start();
 	}
 	
-	public synchronized void sendMessage(String content)
+	public synchronized void sendMessage(String content, String recipients)
 	{
 		if(gui.connected)
 		{
 			//System.out.println("not doing this yet");
-			sendToServer(createDealio(Dealio.chatroom_send, content, Json.createArrayBuilder().build()));
+			JsonArrayBuilder listBuilder = Json.createArrayBuilder();
+			if(recipients.length() > 2)
+			{
+				if(recipients.contains(","))
+				{
+					String[] recipientArray = recipients.split(",");
+					for(String recipientValue : recipientArray)
+					{
+						if(recipientValue.contains(":") && recipientValue.length() > 2)
+						{
+							listBuilder.add(recipientValue);
+						}
+					}
+				}
+				else
+				{
+					listBuilder.add(recipients);
+				}
+				listBuilder.add(userName);
+			}
+			sendToServer(createDealio(Dealio.chatroom_send, content, listBuilder.build()));
 		}
 		else
 		{
@@ -165,8 +188,8 @@ public class ClientConnection
 					}
 					String updatedText = " - - - User " + updatedUser + " just" + update.updateMessage + "the chatroom.";
 					gui.updateDisplay(updatedText);
-					System.out.println(updatedUser);
-					System.out.println(userList.contains(updatedUser));
+					//System.out.println(updatedUser);
+					//System.out.println(userList.contains(updatedUser));
 					if(!updatedUser.equals(userName))
 					{
 						if(update == DealioUpdate.enter)
@@ -178,7 +201,7 @@ public class ClientConnection
 							userList.remove(updatedUser);
 						}
 					}
-					System.out.println(userList.size());
+					//System.out.println(userList.size());
 					if(userList.size() < 2)
 					{
 						gui.updateDisplay(" - - - You are alone on this server.");
@@ -187,20 +210,19 @@ public class ClientConnection
 					break;
 					
 				case chatroom_broadcast:
-					String from = currentDealio.getString("from") + " said to ";
-					Object[] to = currentDealio.getJsonArray("to").toArray();
+					String from = currentDealio.getString("from");
+					JsonArray to = currentDealio.getJsonArray("to");
 					String sentTo = "everyone";
-					if(to.length == 1)
+					boolean fromYou = from.equals(userName);
+					if(!to.isEmpty())
 					{
-						sentTo = "you";
-					}
-					else if(to.length > 1)
-					{
-						sentTo = "you,";
-						for(Object user : to)
+						sentTo = fromYou ? "" : " you,";
+						
+						for(JsonValue user : to)
 						{
-							String userString = (String) user;
-							if(user != null && userString.equals(userName)){	}
+							String userString = user.toString();
+							userString = userString.substring(1, userString.length() - 1);
+							if(userString.equals(userName) || userString.equals(from)){	}
 							else
 							{
 								sentTo = sentTo + " " + userString + ",";
@@ -208,6 +230,11 @@ public class ClientConnection
 						}
 						sentTo = sentTo.substring(0, sentTo.length() - 1);
 					}
+					if(fromYou)
+					{
+						from = "You";
+					}
+					from += " said to";
 					String message = currentDealio.getString("message");
 					String updateDisplayString = from + sentTo + "\n\t" + message;
 					gui.updateDisplay(updateDisplayString);
@@ -267,7 +294,7 @@ public class ClientConnection
 				}
 				catch(IOException e)
 				{
-					//TODO say something if the server goes offline
+					gui.updateDisplay(" - - - Read Error: The Server Probably Went Offline\n - - - Connection Ended");
 					System.out.println("read error");
 					finished = true;
 				}
