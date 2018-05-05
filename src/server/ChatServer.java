@@ -14,22 +14,31 @@ import java.util.concurrent.Executors;
 import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonString;
+import javax.swing.JFrame;
 
 
-public class ChatServer
+public class ChatServer extends JFrame
 {
-	public static final int PORT = 8029;
-	public static final Executor EXECUTOR = Executors.newCachedThreadPool();
-	public static final int MAX_CONNECTIONS = 5;
-	public static boolean serverRunning = true;
-	public static Connection[] clientConnections;
+	private static final long serialVersionUID = 3905863957240410182L;
+	public final int PORT = 8029;
+	public final Executor EXECUTOR = Executors.newCachedThreadPool();
+	public final static int MAX_CONNECTIONS = 5;
+	public boolean serverRunning = true;
+	public Connection[] clientConnections;
 	public static Map<Integer, String> userMap = Collections.synchronizedMap(new HashMap<Integer, String>());
-	private static ServerSocket sock = null;
+	private ServerSocket sock = null;
+	private ChatServerPanel panel;
 	
-	//TODO server GUI?
+	//TODO add more to server GUI
 	
 	public ChatServer() throws IOException
 	{
+		setSize(300, 80);
+		setResizable(false);
+		panel = new ChatServerPanel(this);
+		setContentPane(panel);
+		setVisible(true);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		clientConnections = new Connection[MAX_CONNECTIONS];
 		userMap = new HashMap<Integer, String>();
 		sock = new ServerSocket(PORT);
