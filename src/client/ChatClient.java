@@ -43,15 +43,13 @@ public class ChatClient extends JFrame
 	private ChatClientPanel panel;
 	private ClientConnection clientConnection;
 	public boolean connected;
-	private  String serverString;
 	
-	public ChatClient(String serverString)
+	public ChatClient()
 	{
 		super();
 		panel = new ChatClientPanel(this);
 		setName("WTDP Chat Client");
 		this.setTitle("WTDP Chat Client");
-		this.serverString = serverString;
 		setContentPane(panel);
 		setSize(850, 700);
 		setVisible(true);
@@ -61,16 +59,7 @@ public class ChatClient extends JFrame
 	
 	public static void main(String[] args)
 	{
-		if (args.length != 1)
-		{
-			System.err.println("Usage: java ChatClient <server>");
-			System.exit(0);
-			//TODO allow user to change?
-		}
-		else
-		{
-			new ChatClient(args[0]);
-		}
+		new ChatClient();
 	}
 	
 	public void sendMessage(String message, String recipients)
@@ -88,7 +77,7 @@ public class ChatClient extends JFrame
 		panel.updateUsersLabel(currentUsers);
 	}
 	
-	public void connect()
+	public void connect(String serverString)
 	{
 		try
 		{
@@ -206,7 +195,7 @@ public class ChatClient extends JFrame
 			textField = new JTextField();
 			springLayout.putConstraint(SpringLayout.NORTH, textField, 2, SpringLayout.SOUTH, inputField);
 			springLayout.putConstraint(SpringLayout.EAST, textField, 0, SpringLayout.EAST, inputField);
-			textField.setText("");
+			textField.setText("127.0.0.1");
 			textField.setForeground(Color.GREEN);
 			textField.setFont(new Font("DialogInput", Font.PLAIN, 16));
 			textField.setColumns(20);
@@ -216,7 +205,7 @@ public class ChatClient extends JFrame
 			textField.setBackground(Color.BLACK);
 			add(textField);
 			
-			lblToUser = new JLabel("To User ");
+			lblToUser = new JLabel("Server IP ");
 			springLayout.putConstraint(SpringLayout.WEST, textField, 0, SpringLayout.EAST, lblToUser);
 			springLayout.putConstraint(SpringLayout.WEST, lblToUser, 0, SpringLayout.WEST, inputField);
 			springLayout.putConstraint(SpringLayout.NORTH, lblToUser, 6, SpringLayout.SOUTH, inputField);
@@ -238,12 +227,13 @@ public class ChatClient extends JFrame
 				public void actionPerformed(ActionEvent click) 
 				{
 					String input = inputField.getText();
-					if(input.length() > 0)
+					String server = textField.getText().trim();
+					if(input.length() > 0 && server.length() > 0)
 					{
 						//TODO send
 						if(!frame.connected)
 						{
-							frame.connect();
+							frame.connect(server);
 						}
 						sendMessage(inputField.getText(), textField.getText());
 						inputField.setText("");
@@ -257,7 +247,6 @@ public class ChatClient extends JFrame
 			{
 			    public void windowClosing(WindowEvent e)
 			    {
-			        //TODO
 			    	if(frame.connected)
 			    	{
 				    	clientConnection.close();
@@ -292,6 +281,7 @@ public class ChatClient extends JFrame
 			usersLabel.setText(newText);
 			if(connected)
 			{
+				lblToUser.setText("To User ");
 				inputField.setDocument(new JTextFieldLimit(280));
 			}
 			inputField.setText("");
@@ -310,20 +300,9 @@ public class ChatClient extends JFrame
 				this.limit = limit;
 			}
 
-			JTextFieldLimit(int limit, boolean upper)
-			{
-				super();
-				this.limit = limit;
-			}
-
 			public void insertString(int offset, String str, AttributeSet attr) throws BadLocationException
 			{
-				if (str == null) 
-				{
-					return;
-				}
-
-				if ((getLength() + str.length()) <= limit)
+				if (str != null && (getLength() + str.length()) <= limit)
 				{
 					super.insertString(offset, str, attr);
 				}
