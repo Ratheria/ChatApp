@@ -45,6 +45,7 @@ public class ChatServer extends JFrame
 		while(serverRunning)
 		{
 			Connection latestConnection = new Connection(sock.accept(), this);
+			updateConnections();
 			int firstNull = -1;
 	        for (int i = 0; i < MAX_CONNECTIONS; i++) 
 	        {

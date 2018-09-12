@@ -169,13 +169,13 @@ class ChatClientPanel extends JPanel
 			public void actionPerformed(ActionEvent click) 
 			{
 				String input = inputField.getText();
-				String server = textField.getText().trim();
-				if(input.length() > 0 && server.length() > 0)
+				String sendingTo = textField.getText().trim();
+				if(input.length() > 0)
 				{
 					//TODO send
-					if(!frame.connected)
+					if(!frame.connected && sendingTo.length() > 0)
 					{
-						frame.connect(server);
+						frame.connect(sendingTo);
 					}
 					frame.sendMessage(inputField.getText(), textField.getText());
 					inputField.setText("");

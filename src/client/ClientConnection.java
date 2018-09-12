@@ -211,7 +211,7 @@ public class ClientConnection
 				case chatroom_broadcast:
 					String from = currentDealio.getString("from");
 					JsonArray to = currentDealio.getJsonArray("to");
-					String sentTo = "everyone";
+					String sentTo = " everyone";
 					boolean fromYou = from.equals(userName);
 					if(!to.isEmpty())
 					{
