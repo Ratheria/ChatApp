@@ -23,7 +23,7 @@ public class ChatServer extends JFrame
 	private static final long serialVersionUID = 3905863957240410182L;
 	public final int PORT = 8029;
 	public final Executor EXECUTOR = Executors.newCachedThreadPool();
-	public final static int MAX_CONNECTIONS = 5;
+	public final static int MAX_CONNECTIONS = 15;
 	public boolean serverRunning = true;
 	public Connection[] clientConnections;
 	public static ArrayList<String> currentUsers;
