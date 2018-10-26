@@ -33,9 +33,6 @@ public class Connection implements Runnable
 	private int id;
 	private boolean connected;
 
-	//TODO error handling
-	//TODO thread save closing
-
 	public Connection(Socket client, ChatServer theServer)
 	{
 		this.theServer = theServer;
@@ -90,8 +87,7 @@ public class Connection implements Runnable
 		switch(dealio)
 		{
 			case chatroom_response:
-				Object[] currentUserArray = ChatServer.userMap.values().toArray();
-				JsonArray userList = Json.createArrayBuilder(Arrays.asList(currentUserArray)).build();
+				JsonArray userList = Json.createArrayBuilder(ChatServer.currentUsers).build();
 				currentBuild.add("id", id)
 							.add("clientNo", ChatServer.userMap.size())
 							.add("users", userList);
@@ -112,6 +108,14 @@ public class Connection implements Runnable
 			case chatroom_update:
 				currentBuild.add("type_of_update", update.text)
 							.add("id", userName);
+				if(DealioUpdate.enter.text.equals(update.text))
+				{
+					theServer.userJoin(userName);
+				}
+				else
+				{
+					theServer.userLeave(userName);
+				}
 				break;
 				
 			default:

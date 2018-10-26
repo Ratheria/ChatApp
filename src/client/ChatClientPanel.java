@@ -214,7 +214,7 @@ class ChatClientPanel extends JPanel
 	
 	public void updateUsersLabel(ArrayList<String> currentUsers)
 	{
-		String newText = "Current Users -";
+		String newText = "Current Users - ";
 		for(String user : currentUsers)
 		{
 			newText = newText + " " + user + ",";
@@ -223,7 +223,8 @@ class ChatClientPanel extends JPanel
 		usersLabel.setText(newText);
 		if(frame.connected)
 		{
-			lblToUser.setText("To User ");
+			lblToUser.setText("To Users ");
+			lblToUser.setToolTipText("Separate the user names of multiple recipients with a comma.");
 			inputField.setDocument(new JTextFieldLimit(280));
 		}
 		inputField.setText("");

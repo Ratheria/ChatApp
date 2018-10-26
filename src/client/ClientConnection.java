@@ -69,7 +69,7 @@ public class ClientConnection
 					String[] recipientArray = recipients.split(",");
 					for(String recipientValue : recipientArray)
 					{
-						if(recipientValue.contains(":") && recipientValue.length() > 2)
+						if(recipientValue.trim().contains(":") && recipientValue.length() > 2)
 						{
 							listBuilder.add(recipientValue);
 						}
@@ -86,7 +86,7 @@ public class ClientConnection
 		else
 		{
 			sendToServer(createDealio(Dealio.chatroom_begin, content, null));
-			userName = "" + content;
+			userName = "" + content.toLowerCase();
 		}
 	}
 	
@@ -181,25 +181,19 @@ public class ClientConnection
 					String updatedUser = currentDealio.getString("id");
 					String updateType = currentDealio.getString("type_of_update");
 					DealioUpdate update = DealioUpdate.enter;
-					if(!update.text.equals(updateType))
+					if(update.text.equals(updateType))
+					{
+						userList.add(updatedUser);
+					}
+					else
 					{
 						update = DealioUpdate.leave;
+						userList.remove(updatedUser);
 					}
 					String updatedText = " - - - User " + updatedUser + " just" + update.updateMessage + "the chatroom.";
 					gui.updateDisplay(updatedText);
 					//System.out.println(updatedUser);
 					//System.out.println(userList.contains(updatedUser));
-					if(!updatedUser.equals(userName))
-					{
-						if(update == DealioUpdate.enter)
-						{
-							userList.add(updatedUser);
-						}
-						else
-						{
-							userList.remove(updatedUser);
-						}
-					}
 					//System.out.println(userList.size());
 					if(userList.size() < 2)
 					{
@@ -293,7 +287,7 @@ public class ClientConnection
 				}
 				catch(IOException e)
 				{
-					gui.updateDisplay(" - - - Read Error: The Server Probably Went Offline\n - - - Connection Ended");
+					gui.updateDisplay(" - - - Read Error: The Server Went Offline\n - - - Connection Ended");
 					System.out.println("read error");
 					finished = true;
 				}

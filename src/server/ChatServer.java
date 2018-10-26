@@ -6,6 +6,7 @@ package server;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,7 @@ public class ChatServer extends JFrame
 	public final static int MAX_CONNECTIONS = 5;
 	public boolean serverRunning = true;
 	public Connection[] clientConnections;
+	public static ArrayList<String> currentUsers;
 	public static Map<Integer, String> userMap = Collections.synchronizedMap(new HashMap<Integer, String>());
 	private ServerSocket sock = null;
 	private ChatServerPanel panel;
@@ -40,6 +42,7 @@ public class ChatServer extends JFrame
 		setVisible(true);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		clientConnections = new Connection[MAX_CONNECTIONS];
+		currentUsers = new ArrayList<String>();
 		userMap = new HashMap<Integer, String>();
 		sock = new ServerSocket(PORT);
 		while(serverRunning)
@@ -68,6 +71,16 @@ public class ChatServer extends JFrame
 	public static void main(String[] args) throws IOException 
 	{
 		new ChatServer();
+	}
+	
+	public synchronized void userJoin(String user)
+	{
+		currentUsers.add(user);
+	}
+	
+	public synchronized void userLeave(String user)
+	{
+		currentUsers.remove(user);
 	}
 	
 	public synchronized void updateConnections()
